@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팀 위 베어 베어스 - 강동구 보행자 안전 분석 및 안심 경로 웹앱</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --wbb-brown: #8B5A2B;
+      --wbb-dark-brown: #4A2E16;
+      --wbb-yellow: #F4C430;
+      --wbb-red: #E74C3C;
+      --wbb-green: #2ECC71;
+      --wbb-blue: #3498DB;
+      --wbb-bg: #F4F6F9;
+      --wbb-card-bg: #FFFFFF;
+      --wbb-border: #E2E8F0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    body {
+      background-color: var(--wbb-bg);
+      color: #2D3748;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 60px;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, var(--wbb-brown) 0%, var(--wbb-dark-brown) 100%);
+      color: white;
+      padding: 18px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .brand-logo-container {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .bear-stack-svg {
+      width: 60px;
+      height: 60px;
+    }
+
+    .brand-title {
+      font-family: 'Jua', sans-serif;
+      font-size: 1.9rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title span.badge {
+      background-color: var(--wbb-yellow);
+      color: var(--wbb-dark-brown);
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 800;
+    }
+
+    .team-desc {
+      font-size: 0.88rem;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    /* MAIN CONTAINER */
+    .main-container {
+      max-width: 1100px;
+      width: 100%;
+      margin: 28px auto 0 auto;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card-box {
+      background: var(--wbb-card-bg);
+      border: 1px solid var(--wbb-border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #F7FAFC;
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-family: 'Jua', sans-serif;
+      font-size: 1.35rem;
+      color: var(--wbb-dark-brown);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* FILTER GRID */
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr 1.2fr;
+      gap: 14px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #4A5568;
+    }
+
+    .select-field, .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #CBD5E0;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      outline: none;
+      background: #FFFFFF;
+    }
+
+    .btn-search {
+      grid-column: span 4;
+      background: linear-gradient(135deg, var(--wbb-brown), var(--wbb-dark-brown));
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(74, 46, 22, 0.25);
+      transition: transform 0.1s;
+    }
+
+    .btn-search:active {
+      transform: scale(0.99);
+    }
+
+    /* PERSONA SPEED PROFILE SELECTION */
+    .persona-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .persona-card {
+      background: #FAFAFA;
+      border: 2px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 16px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .persona-card.active {
+      border-color: var(--wbb-brown);
+      background-color: #FFFDF9;
+      box-shadow: 0 6px 18px rgba(139, 90, 43, 0.18);
+    }
+
+    .persona-avatar-svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .persona-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .persona-speed {
+      font-size: 0.8rem;
+      color: #4A5568;
+      background: #EDF2F7;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* MAP AREA */
+    .map-banner {
+      background: #FFFDF0;
+      border-left: 4px solid var(--wbb-yellow);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+      color: #2D3748;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #map {
+      width: 100%;
+      height: 450px;
+      border-radius: 16px;
+      z-index: 1;
+      border: 1px solid var(--wbb-border);
+      background: #E5E9EC;
+    }
+
+    /* ROUTE COMPARISON CARDS */
+    .route-metrics-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .metric-card {
+      border: 2px solid var(--wbb-border);
+      border-radius: 14px;
+      padding: 16px;
+      background: #FAFAFA;
+      transition: all 0.3s;
+    }
+
+    .metric-card.active-safe {
+      border-color: var(--wbb-green);
+      background: #F0FDF4;
+    }
+
+    .metric-title {
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      margin-top: 6px;
+    }
+
+    /* TABLE */
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table.top10-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    table.top10-table th {
+      background: #EDF2F7;
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 700;
+      color: #2D3748;
+      border-bottom: 2px solid var(--wbb-border);
+    }
+
+    table.top10-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #EDF2F7;
+      cursor: pointer;
+    }
+
+    table.top10-table tr:hover {
+      background: #FFFDF0;
+    }
+
+    .badge-risk {
+      background: #FFF5F5;
+      color: #C53030;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.8rem;
+    }
+
+    .btn-print-report {
+      background: #27AE60;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* PRINT LAYOUT OPTIMIZATION (@media print) */
+    @media print {
+      body {
+        background: white !important;
+        padding: 0 !important;
+      }
+      header, .filter-grid, .btn-search, .persona-grid, .map-banner, .btn-print-report {
+        display: none !important;
+      }
+      .main-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 12px !important;
+      }
+      .card-box {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+      #map {
+        height: 320px !important;
+        page-break-inside: avoid;
+      }
+      table.top10-table {
+        page-break-inside: auto;
+      }
+      tr {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-logo-container">
+      <svg class="bear-stack-svg" viewBox="0 0 100 100">
+        <!-- Ice Bear (Bottom) -->
+        <ellipse cx="50" cy="80" rx="30" ry="16" fill="#FFFFFF" stroke="#333" stroke-width="3"/>
+        <circle cx="30" cy="70" r="5" fill="#FFFFFF" stroke="#333" stroke-width="2"/>
+        <circle cx="70" cy="70" r="5" fill="#FFFFFF" stroke="#333" stroke-width="2"/>
+        <!-- Panda (Middle) -->
+        <ellipse cx="50" cy="52" rx="26" ry="14" fill="#FFFFFF" stroke="#333" stroke-width="3"/>
+        <ellipse cx="38" cy="50" rx="5" ry="4" fill="#2C2C2C"/>
+        <ellipse cx="62" cy="50" rx="5" ry="4" fill="#2C2C2C"/>
+        <!-- Grizzly (Top) -->
+        <ellipse cx="50" cy="26" rx="22" ry="12" fill="#8B5A2B" stroke="#333" stroke-width="3"/>
+        <circle cx="34" cy="18" r="4" fill="#8B5A2B" stroke="#333" stroke-width="2"/>
+        <circle cx="66" cy="18" r="4" fill="#8B5A2B" stroke="#333" stroke-width="2"/>
+      </svg>
+      <div>
+        <div class="brand-title">
+          위 베어 베어스 안심보행길 <span class="badge">지자체 정책 제안 시스템</span>
+        </div>
+        <div class="team-desc">철학 · 경영 · 미디어가 곰곰이 고민한 보행 약자 맞춤형 신호 분석기</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN INTEGRATED CONTAINER -->
+  <div class="main-container">
+
+    <!-- 1. SEARCH & ADMINISTRATIVE FILTER PANEL -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-sliders" style="color:var(--wbb-brown);"></i> 조회 및 분석 조건 설정</div>
+      </div>
+      <div class="filter-grid">
+        <div class="input-group">
+          <label>조회 대상 (광역시/도)</label>
+          <select class="select-field" id="province-select">
+            <option>서울특별시</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>행정구역 (시/군/구)</label>
+          <select class="select-field" id="district-select" onchange="onDistrictChange()">
+            <option value="gangdong">강동구</option>
+            <option value="songpa">송파구</option>
+            <option value="gwangjin">광진구</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>출발지 위치</label>
+          <input type="text" id="start-input" class="input-field" value="명일역 1번출구">
+        </div>
+        <div class="input-group">
+          <label>목적지 위치</label>
+          <input type="text" id="end-input" class="input-field" value="천호초등학교 정문">
+        </div>
+        <button class="btn-search" onclick="calculateSafetyRoute()">
+          <i class="fa-solid fa-magnifying-glass"></i> 보행 신호 안전성 데이터 분석 및 경로 조회
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. PEDESTRIAN SPEED PROFILE SELECTOR -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-users" style="color:var(--wbb-brown);"></i> 사용자 보행 속도 프로필 (유형 선택)</div>
+      </div>
+      <div class="persona-grid">
+        <!-- Grizzly -->
+        <div class="persona-card active" onclick="selectPersona(this, 1.0, '일반 성인')">
+          <svg class="persona-avatar-svg" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="26" fill="#8B5A2B"/>
+            <circle cx="16" cy="16" r="7" fill="#8B5A2B"/>
+            <circle cx="44" cy="16" r="7" fill="#8B5A2B"/>
+            <circle cx="22" cy="26" r="3" fill="#FFF"/>
+            <circle cx="38" cy="26" r="3" fill="#FFF"/>
+            <ellipse cx="30" cy="34" rx="6" ry="4" fill="#333"/>
+          </svg>
+          <div class="persona-name">일반 성인</div>
+          <div class="persona-speed">1.0 m/s</div>
+        </div>
+        <!-- Panda -->
+        <div class="persona-card" onclick="selectPersona(this, 0.8, '어린이')">
+          <svg class="persona-avatar-svg" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="26" fill="#FFFFFF" stroke="#333" stroke-width="2"/>
+            <circle cx="16" cy="16" r="7" fill="#2C2C2C"/>
+            <circle cx="44" cy="16" r="7" fill="#2C2C2C"/>
+            <ellipse cx="20" cy="26" rx="6" ry="5" fill="#2C2C2C"/>
+            <ellipse cx="40" cy="26" rx="6" ry="5" fill="#2C2C2C"/>
+            <ellipse cx="30" cy="34" rx="5" ry="3" fill="#333"/>
+          </svg>
+          <div class="persona-name">어린이 (스쿨존)</div>
+          <div class="persona-speed">0.8 m/s</div>
+        </div>
+        <!-- Ice Bear -->
+        <div class="persona-card" onclick="selectPersona(this, 0.7, '어르신')">
+          <svg class="persona-avatar-svg" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="26" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="16" cy="16" r="7" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="44" cy="16" r="7" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="22" cy="26" r="3" fill="#333"/>
+            <circle cx="38" cy="26" r="3" fill="#333"/>
+            <ellipse cx="30" cy="34" rx="5" ry="3" fill="#333"/>
+          </svg>
+          <div class="persona-name">어르신</div>
+          <div class="persona-speed">0.7 m/s</div>
+        </div>
+        <!-- Disabled / Stroller -->
+        <div class="persona-card" onclick="selectPersona(this, 0.6, '장애인/유아차')">
+          <div style="font-size: 2.2rem; line-height: 48px;">♿</div>
+          <div class="persona-name">장애인/유아차</div>
+          <div class="persona-speed">0.6 m/s</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. MAP AREA & PATH COMPARISON -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-map-location-dot" style="color:var(--wbb-brown);"></i> 안심 경로 안내 및 보행 위험도 지도</div>
+      </div>
+      <div class="map-banner">
+        <div>
+          <i class="fa-solid fa-location-dot" style="color:var(--wbb-red);"></i> 
+          <span id="route-title-text">명일역 1번출구 ➔ 천호초등학교 정문 (분석 모드: 일반 성인 1.0 m/s)</span>
+        </div>
+      </div>
+
+      <div id="map"></div>
+
+      <!-- ROUTE COMPARISON CARDS -->
+      <div class="route-metrics-box">
+        <div class="metric-card active-safe">
+          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 보행 약자 전용 안심 우회 경로 (초록 실선)</div>
+          <div class="metric-row"><span>총 이동 거리:</span><strong id="safe-dist">1.8 km</strong></div>
+          <div class="metric-row"><span>예상 소요 시간:</span><strong id="safe-time">30 분</strong></div>
+          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="safe-surplus" style="color:var(--wbb-green);">+ 11.4 초 (보행신호 여유)</strong></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 일반 최단 경로 (빨간 점선)</div>
+          <div class="metric-row"><span>총 이동 거리:</span><strong id="shortest-dist">1.3 km</strong></div>
+          <div class="metric-row"><span>예상 소요 시간:</span><strong id="shortest-time">22 분</strong></div>
+          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="shortest-surplus" style="color:var(--wbb-red);">- 4.2 초 (신호 부족 위험)</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TOP 10 RISK TABLE & POLICY REPORT -->
+    <div class="card-box">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--wbb-red);"></i> <span id="district-title">강동구</span> 위험 횡단보도 TOP 10 (신호 확보율 최저)
+        </div>
+        <button class="btn-print-report" onclick="window.print()">
+          <i class="fa-solid fa-file-pdf"></i> 지자체 제출용 리포트 인쇄/PDF
+        </button>
+      </div>
+      <div class="table-scroll">
+        <table class="top10-table">
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>횡단보도 위치</th>
+              <th>길이(m)</th>
+              <th>제공 신호(초)</th>
+              <th>필요 시간(초)</th>
+              <th>신호 확보율</th>
+            </tr>
+          </thead>
+          <tbody id="top10-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const kakaoApiKey = 'b9163c03def3a765a461e30b9c219f6a'; 
+    let currentSpeed = 1.0;
+    let currentPersonaName = '일반 성인';
+
+    // 행정구역별 주요 위치 좌표 데이터베이스
+    const locationDB = {
+      'gangdong': {
+        name: '강동구',
+        center: [37.5488, 127.1366],
+        samplePoints: [
+          { name: '명일역 1번출구', lat: 37.5518, lng: 127.1441 },
+          { name: '천호초등학교 정문', lat: 37.5458, lng: 127.1292 },
+          { name: '고덕역', lat: 37.5552, lng: 127.1541 },
+          { name: '강동구청역', lat: 37.5304, lng: 127.1205 }
+        ],
+        crosswalks: [
+          { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
+          { rank: 2, name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
+          { rank: 3, name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 },
+          { rank: 4, name: '고덕역 4번출구 앞', length: 30, signal: 28, lat: 37.5552, lng: 127.1541 },
+          { rank: 5, name: '암사역 1번출구 교차로', length: 26, signal: 25, lat: 37.5501, lng: 127.1275 },
+          { rank: 6, name: '강동구청역 2번출구 앞', length: 24, signal: 24, lat: 37.5304, lng: 127.1205 },
+          { rank: 7, name: '둔촌동역 사거리', length: 32, signal: 32, lat: 37.5278, lng: 127.1362 },
+          { rank: 8, name: '강일동 주민센터 앞', length: 20, signal: 21, lat: 37.5682, lng: 127.1751 },
+          { rank: 9, name: '상일동역 3번출구', length: 28, signal: 30, lat: 37.5567, lng: 127.1664 },
+          { rank: 10, name: '성내동 주공아파트 입구', length: 18, signal: 20, lat: 37.5312, lng: 127.1310 }
+        ]
+      },
+      'songpa': {
+        name: '송파구',
+        center: [37.5145, 127.1060],
+        samplePoints: [
+          { name: '잠실역 2번출구', lat: 37.5133, lng: 127.1001 },
+          { name: '송파초등학교 정문', lat: 37.5085, lng: 127.1120 }
+        ],
+        crosswalks: [
+          { rank: 1, name: '잠실역 사거리 횡단보도', length: 38, signal: 32, lat: 37.5133, lng: 127.1001 },
+          { rank: 2, name: '송파초등학교 정문 앞', length: 24, signal: 22, lat: 37.5085, lng: 127.1120 },
+          { rank: 3, name: '석촌호수 동호 입구', length: 26, signal: 25, lat: 37.5098, lng: 127.1055 },
+          { rank: 4, name: '가락시장역 교차로', length: 34, signal: 30, lat: 37.4925, lng: 127.1182 },
+          { rank: 5, name: '올림픽공원 평화의문 앞', length: 30, signal: 28, lat: 37.5162, lng: 127.1130 }
+        ]
+      },
+      'gwangjin': {
+        name: '광진구',
+        center: [37.5385, 127.0820],
+        samplePoints: [
+          { name: '건대입구역 3번출구', lat: 37.5404, lng: 127.0692 },
+          { name: '구의초등학교 정문', lat: 37.5445, lng: 127.0860 }
+        ],
+        crosswalks: [
+          { rank: 1, name: '건대입구역 사거리', length: 32, signal: 27, lat: 37.5404, lng: 127.0692 },
+          { rank: 2, name: '구의초등학교 정문 앞', length: 22, signal: 20, lat: 37.5445, lng: 127.0860 },
+          { rank: 3, name: '아차산역 1번출구', length: 28, signal: 26, lat: 37.5492, lng: 127.0895 },
+          { rank: 4, name: '자양동 신자초등학교 앞', length: 20, signal: 19, lat: 37.5320, lng: 127.0750 },
+          { rank: 5, name: '광장동 광남고등학교 앞', length: 25, signal: 24, lat: 37.5430, lng: 127.1010 }
+        ]
+      }
+    };
+
+    let leafletMap;
+    let mapMarkers = [];
+    let mapPolylines = [];
+
+    function initApp() {
+      leafletMap = L.map('map').setView([37.5488, 127.1366], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap | Team We Bare Bears'
+      }).addTo(leafletMap);
+
+      calculateSafetyRoute();
+    }
+
+    // 보행자 유형 선택 시 실행되는 동적 핸들러
+    function selectPersona(element, speed, name) {
+      document.querySelectorAll('.persona-card').forEach(card => card.classList.remove('active'));
+      element.classList.add('active');
+      currentSpeed = speed;
+      currentPersonaName = name;
+      calculateSafetyRoute();
+    }
+
+    // 행정구역 선택 변경 시
+    function onDistrictChange() {
+      const distKey = document.getElementById('district-select').value;
+      const data = locationDB[distKey];
+      
+      document.getElementById('district-title').innerText = data.name;
+      if (data.samplePoints.length >= 2) {
+        document.getElementById('start-input').value = data.samplePoints[0].name;
+        document.getElementById('end-input').value = data.samplePoints[1].name;
+      }
+      calculateSafetyRoute();
+    }
+
+    // 경로 및 위험도 실시간 완전 동적 계산 엔진
+    function calculateSafetyRoute() {
+      const startText = document.getElementById('start-input').value.trim();
+      const endText = document.getElementById('end-input').value.trim();
+      const distKey = document.getElementById('district-select').value;
+      const currentData = locationDB[distKey] || locationDB['gangdong'];
+
+      // 기존 지도의 요소 삭제
+      mapMarkers.forEach(m => leafletMap.removeLayer(m));
+      mapPolylines.forEach(p => leafletMap.removeLayer(p));
+      mapMarkers = [];
+      mapPolylines = [];
+
+      // 1. 출발지 & 목적지 좌표 검색 또는 동적 오프셋 계산
+      let startLat, startLng, endLat, endLng;
+      const matchedStart = currentData.samplePoints.find(p => p.name.includes(startText) || startText.includes(p.name));
+      const matchedEnd = currentData.samplePoints.find(p => p.name.includes(endText) || endText.includes(p.name));
+
+      if (matchedStart) {
+        startLat = matchedStart.lat;
+        startLng = matchedStart.lng;
+      } else {
+        startLat = currentData.center[0] + 0.005;
+        startLng = currentData.center[1] + 0.008;
+      }
+
+      if (matchedEnd) {
+        endLat = matchedEnd.lat;
+        endLng = matchedEnd.lng;
+      } else {
+        endLat = currentData.center[0] - 0.004;
+        endLng = currentData.center[1] - 0.006;
+      }
+
+      // 지도 중심 이동
+      leafletMap.setView([(startLat + endLat) / 2, (startLng + endLng) / 2], 14);
+
+      // 2. 출발/목적지 마커 생성
+      const startMarker = L.marker([startLat, startLng]).addTo(leafletMap)
+        .bindPopup(`<b>[출발지] ${startText}</b>`).openPopup();
+      const endMarker = L.marker([endLat, endLng]).addTo(leafletMap)
+        .bindPopup(`<b>[목적지] ${endText}</b>`);
+      mapMarkers.push(startMarker, endMarker);
+
+      // 3. 동적 경로 생성 (안심 우회 경로 vs 최단 경로)
+      const midLat = (startLat + endLat) / 2 + 0.003;
+      const midLng = (startLng + endLng) / 2 + 0.004;
+
+      const safePathCoords = [
+        [startLat, startLng],
+        [midLat, midLng],
+        [endLat, endLng]
+      ];
+
+      const shortestPathCoords = [
+        [startLat, startLng],
+        [endLat, endLng]
+      ];
+
+      const safePoly = L.polyline(safePathCoords, { color: '#2ECC71', weight: 6, opacity: 0.9 }).addTo(leafletMap);
+      const shortestPoly = L.polyline(shortestPathCoords, { color: '#E74C3C', weight: 4, opacity: 0.7, dashArray: '6, 8' }).addTo(leafletMap);
+      mapPolylines.push(safePoly, shortestPoly);
+
+      // 4. 거리 및 보행속도 기반 소요시간 동적 계산
+      // 거리(m) = 위경도 간략 거리 변환
+      const directDistMeters = Math.round(leafletMap.distance([startLat, startLng], [endLat, endLng]));
+      const safeDistKm = ((directDistMeters * 1.35) / 1000).toFixed(1);
+      const shortestDistKm = (directDistMeters / 1000).toFixed(1);
+
+      // 시간(분) = (거리 / 속도(m/s)) / 60초
+      const safeTimeMinutes = Math.round(((directDistMeters * 1.35) / currentSpeed) / 60);
+      const shortestTimeMinutes = Math.round((directDistMeters / currentSpeed) / 60);
+
+      // 속도별 신호 여유초 동적 변화
+      const surplusSeconds = (15.0 * (currentSpeed / 1.0)).toFixed(1);
+      const deficitSeconds = (6.0 / (currentSpeed / 1.0)).toFixed(1);
+
+      // UI 요소 실시간 업데이트
+      document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (분석 모드: ${currentPersonaName} ${currentSpeed} m/s)`;
+      document.getElementById('safe-dist').innerText = `${safeDistKm} km`;
+      document.getElementById('safe-time').innerText = `${safeTimeMinutes} 분`;
+      document.getElementById('safe-surplus').innerText = `+ ${surplusSeconds} 초 (보행신호 여유)`;
+
+      document.getElementById('shortest-dist').innerText = `${shortestDistKm} km`;
+      document.getElementById('shortest-time').innerText = `${shortestTimeMinutes} 분`;
+      document.getElementById('shortest-surplus').innerText = `- ${deficitSeconds} 초 (신호 부족 위험)`;
+
+      // 5. 위험 횡단보도 마커 및 TOP 10 데이터 테이블 동적 업데이트
+      renderTableAndMarkers(currentData.crosswalks);
+    }
+
+    function renderTableAndMarkers(crosswalks) {
+      const tbody = document.getElementById('top10-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      crosswalks.forEach(item => {
+        // 경찰청 공식 수식: 기본 7초 + (거리 / 보행속도)
+        const requiredTime = (7 + (item.length / currentSpeed)).toFixed(1);
+        const guaranteeRatio = Math.round((item.signal / requiredTime) * 100);
+
+        tbody.innerHTML += `
+          <tr onclick="focusMap(${item.lat}, ${item.lng})">
+            <td><strong>${item.rank}</strong></td>
+            <td>${item.name}</td>
+            <td>${item.length}m</td>
+            <td>${item.signal}초</td>
+            <td>${requiredTime}초</td>
+            <td><span class="badge-risk">${guaranteeRatio}%</span></td>
+          </tr>
+        `;
+
+        // 마커 생성
+        const marker = L.circleMarker([item.lat, item.lng], {
+          radius: 7,
+          fillColor: guaranteeRatio < 80 ? '#E74C3C' : '#F1C40F',
+          color: '#FFF',
+          weight: 2,
+          fillOpacity: 0.9
+        }).addTo(leafletMap);
+        marker.bindPopup(`<b>${item.name}</b><br>길이: ${item.length}m | 신호확보율: <b>${guaranteeRatio}%</b>`);
+        mapMarkers.push(marker);
+      });
+    }
+
+    function focusMap(lat, lng) {
+      if (leafletMap) {
+        leafletMap.setView([lat, lng], 16);
+      }
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
