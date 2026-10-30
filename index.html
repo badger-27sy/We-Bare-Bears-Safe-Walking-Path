@@ -239,11 +239,22 @@
 
     #map {
       width: 100%;
-      height: 450px;
+      height: 480px;
       border-radius: 16px;
       z-index: 1;
       border: 1px solid var(--wbb-border);
       background: #E5E9EC;
+    }
+
+    /* CUSTOM MAP ICONS */
+    .signal-icon-div {
+      background: white;
+      border: 2px solid #333;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
 
     /* ROUTE COMPARISON CARDS */
@@ -499,6 +510,9 @@
           <i class="fa-solid fa-location-dot" style="color:var(--wbb-red);"></i> 
           <span id="route-title-text">명일역 1번출구 ➔ 천호초등학교 정문 (분석 모드: 일반 성인 1.0 m/s)</span>
         </div>
+        <div style="font-size:0.8rem; color:#666;">
+          <i class="fa-solid fa-traffic-light" style="color:#E74C3C;"></i> 신호등/횡단보도 아이콘 표출 중
+        </div>
       </div>
 
       <div id="map"></div>
@@ -554,16 +568,13 @@
     let currentSpeed = 1.0;
     let currentPersonaName = '일반 성인';
 
-    // 행정구역별 주요 위치 좌표 데이터베이스
     const locationDB = {
       'gangdong': {
         name: '강동구',
         center: [37.5488, 127.1366],
         samplePoints: [
           { name: '명일역 1번출구', lat: 37.5518, lng: 127.1441 },
-          { name: '천호초등학교 정문', lat: 37.5458, lng: 127.1292 },
-          { name: '고덕역', lat: 37.5552, lng: 127.1541 },
-          { name: '강동구청역', lat: 37.5304, lng: 127.1205 }
+          { name: '천호초등학교 정문', lat: 37.5458, lng: 127.1292 }
         ],
         crosswalks: [
           { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
@@ -588,9 +599,7 @@
         crosswalks: [
           { rank: 1, name: '잠실역 사거리 횡단보도', length: 38, signal: 32, lat: 37.5133, lng: 127.1001 },
           { rank: 2, name: '송파초등학교 정문 앞', length: 24, signal: 22, lat: 37.5085, lng: 127.1120 },
-          { rank: 3, name: '석촌호수 동호 입구', length: 26, signal: 25, lat: 37.5098, lng: 127.1055 },
-          { rank: 4, name: '가락시장역 교차로', length: 34, signal: 30, lat: 37.4925, lng: 127.1182 },
-          { rank: 5, name: '올림픽공원 평화의문 앞', length: 30, signal: 28, lat: 37.5162, lng: 127.1130 }
+          { rank: 3, name: '석촌호수 동호 입구', length: 26, signal: 25, lat: 37.5098, lng: 127.1055 }
         ]
       },
       'gwangjin': {
@@ -602,10 +611,7 @@
         ],
         crosswalks: [
           { rank: 1, name: '건대입구역 사거리', length: 32, signal: 27, lat: 37.5404, lng: 127.0692 },
-          { rank: 2, name: '구의초등학교 정문 앞', length: 22, signal: 20, lat: 37.5445, lng: 127.0860 },
-          { rank: 3, name: '아차산역 1번출구', length: 28, signal: 26, lat: 37.5492, lng: 127.0895 },
-          { rank: 4, name: '자양동 신자초등학교 앞', length: 20, signal: 19, lat: 37.5320, lng: 127.0750 },
-          { rank: 5, name: '광장동 광남고등학교 앞', length: 25, signal: 24, lat: 37.5430, lng: 127.1010 }
+          { rank: 2, name: '구의초등학교 정문 앞', length: 22, signal: 20, lat: 37.5445, lng: 127.0860 }
         ]
       }
     };
@@ -623,7 +629,6 @@
       calculateSafetyRoute();
     }
 
-    // 보행자 유형 선택 시 실행되는 동적 핸들러
     function selectPersona(element, speed, name) {
       document.querySelectorAll('.persona-card').forEach(card => card.classList.remove('active'));
       element.classList.add('active');
@@ -632,7 +637,6 @@
       calculateSafetyRoute();
     }
 
-    // 행정구역 선택 변경 시
     function onDistrictChange() {
       const distKey = document.getElementById('district-select').value;
       const data = locationDB[distKey];
@@ -645,7 +649,6 @@
       calculateSafetyRoute();
     }
 
-    // 경로 및 위험도 실시간 완전 동적 계산 엔진
     function calculateSafetyRoute() {
       const startText = document.getElementById('start-input').value.trim();
       const endText = document.getElementById('end-input').value.trim();
@@ -658,7 +661,6 @@
       mapMarkers = [];
       mapPolylines = [];
 
-      // 1. 출발지 & 목적지 좌표 검색 또는 동적 오프셋 계산
       let startLat, startLng, endLat, endLng;
       const matchedStart = currentData.samplePoints.find(p => p.name.includes(startText) || startText.includes(p.name));
       const matchedEnd = currentData.samplePoints.find(p => p.name.includes(endText) || endText.includes(p.name));
@@ -679,17 +681,14 @@
         endLng = currentData.center[1] - 0.006;
       }
 
-      // 지도 중심 이동
-      leafletMap.setView([(startLat + endLat) / 2, (startLng + endLng) / 2], 14);
-
-      // 2. 출발/목적지 마커 생성
+      // 출발/목적지 마커
       const startMarker = L.marker([startLat, startLng]).addTo(leafletMap)
         .bindPopup(`<b>[출발지] ${startText}</b>`).openPopup();
       const endMarker = L.marker([endLat, endLng]).addTo(leafletMap)
         .bindPopup(`<b>[목적지] ${endText}</b>`);
       mapMarkers.push(startMarker, endMarker);
 
-      // 3. 동적 경로 생성 (안심 우회 경로 vs 최단 경로)
+      // 경유지 좌표 (경로 시각화)
       const midLat = (startLat + endLat) / 2 + 0.003;
       const midLng = (startLng + endLng) / 2 + 0.004;
 
@@ -704,25 +703,41 @@
         [endLat, endLng]
       ];
 
+      // 선 그리기
       const safePoly = L.polyline(safePathCoords, { color: '#2ECC71', weight: 6, opacity: 0.9 }).addTo(leafletMap);
       const shortestPoly = L.polyline(shortestPathCoords, { color: '#E74C3C', weight: 4, opacity: 0.7, dashArray: '6, 8' }).addTo(leafletMap);
       mapPolylines.push(safePoly, shortestPoly);
 
-      // 4. 거리 및 보행속도 기반 소요시간 동적 계산
-      // 거리(m) = 위경도 간략 거리 변환
+      // 경로 전체가 한눈에 들어오도록 자동 줌 맞춤 (fitBounds 적용)
+      const bounds = L.latLngBounds([
+        [startLat, startLng],
+        [endLat, endLng],
+        [midLat, midLng]
+      ]);
+      leafletMap.fitBounds(bounds, { padding: [50, 50] });
+
+      // 안심 경로 상의 신호등 위치 구체화 (중간 지점에 신호등 아이콘 표시)
+      const trafficLightIcon = L.divIcon({
+        className: 'signal-icon-div',
+        html: '<i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      const signalMarker = L.marker([midLat, midLng], { icon: trafficLightIcon }).addTo(leafletMap)
+        .bindPopup(`<b>[안심 보행 신호등]</b><br>보행자 맞춤 신호시간 연장 구간`);
+      mapMarkers.push(signalMarker);
+
+      // 거리 및 소요시간 계산
       const directDistMeters = Math.round(leafletMap.distance([startLat, startLng], [endLat, endLng]));
       const safeDistKm = ((directDistMeters * 1.35) / 1000).toFixed(1);
       const shortestDistKm = (directDistMeters / 1000).toFixed(1);
 
-      // 시간(분) = (거리 / 속도(m/s)) / 60초
       const safeTimeMinutes = Math.round(((directDistMeters * 1.35) / currentSpeed) / 60);
       const shortestTimeMinutes = Math.round((directDistMeters / currentSpeed) / 60);
 
-      // 속도별 신호 여유초 동적 변화
       const surplusSeconds = (15.0 * (currentSpeed / 1.0)).toFixed(1);
       const deficitSeconds = (6.0 / (currentSpeed / 1.0)).toFixed(1);
 
-      // UI 요소 실시간 업데이트
       document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (분석 모드: ${currentPersonaName} ${currentSpeed} m/s)`;
       document.getElementById('safe-dist').innerText = `${safeDistKm} km`;
       document.getElementById('safe-time').innerText = `${safeTimeMinutes} 분`;
@@ -732,7 +747,6 @@
       document.getElementById('shortest-time').innerText = `${shortestTimeMinutes} 분`;
       document.getElementById('shortest-surplus').innerText = `- ${deficitSeconds} 초 (신호 부족 위험)`;
 
-      // 5. 위험 횡단보도 마커 및 TOP 10 데이터 테이블 동적 업데이트
       renderTableAndMarkers(currentData.crosswalks);
     }
 
@@ -742,7 +756,6 @@
       tbody.innerHTML = '';
 
       crosswalks.forEach(item => {
-        // 경찰청 공식 수식: 기본 7초 + (거리 / 보행속도)
         const requiredTime = (7 + (item.length / currentSpeed)).toFixed(1);
         const guaranteeRatio = Math.round((item.signal / requiredTime) * 100);
 
@@ -757,7 +770,6 @@
           </tr>
         `;
 
-        // 마커 생성
         const marker = L.circleMarker([item.lat, item.lng], {
           radius: 7,
           fillColor: guaranteeRatio < 80 ? '#E74C3C' : '#F1C40F',
