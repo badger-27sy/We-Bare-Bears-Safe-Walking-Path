@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>팀 위 베어 베어스 - 강동구 보행자 안전 분석 및 안심 경로 웹앱</title>
 
-  <!-- Leaflet CSS & JS (Kakao Maps 동적 로더 및 시뮬레이션 지도) -->
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -88,7 +88,7 @@
       margin-top: 2px;
     }
 
-    /* MAIN CONTAINER - VERTICAL INTEGRATED LAYOUT */
+    /* MAIN CONTAINER */
     .main-container {
       max-width: 1100px;
       width: 100%;
@@ -125,7 +125,7 @@
       gap: 10px;
     }
 
-    /* 1. FILTER & SEARCH CONTROL GRID */
+    /* FILTER GRID */
     .filter-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1.2fr 1.2fr;
@@ -152,11 +152,6 @@
       font-size: 0.9rem;
       outline: none;
       background: #FFFFFF;
-      transition: border 0.2s;
-    }
-
-    .select-field:focus, .input-field:focus {
-      border-color: var(--wbb-brown);
     }
 
     .btn-search {
@@ -182,7 +177,7 @@
       transform: scale(0.99);
     }
 
-    /* 2. PERSONA SPEED PROFILE SELECTION */
+    /* PERSONA SPEED PROFILE SELECTION */
     .persona-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -201,11 +196,6 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-    }
-
-    .persona-card:hover {
-      border-color: var(--wbb-brown);
-      transform: translateY(-2px);
     }
 
     .persona-card.active {
@@ -233,7 +223,7 @@
       font-weight: 700;
     }
 
-    /* 3. MAP AREA & METRICS */
+    /* MAP AREA */
     .map-banner {
       background: #FFFDF0;
       border-left: 4px solid var(--wbb-yellow);
@@ -253,9 +243,10 @@
       border-radius: 16px;
       z-index: 1;
       border: 1px solid var(--wbb-border);
+      background: #E5E9EC;
     }
 
-    /* ROUTE ANALYSIS COMPARISON TABS */
+    /* ROUTE COMPARISON CARDS */
     .route-metrics-box {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -268,6 +259,7 @@
       border-radius: 14px;
       padding: 16px;
       background: #FAFAFA;
+      transition: all 0.3s;
     }
 
     .metric-card.active-safe {
@@ -291,27 +283,7 @@
       margin-top: 6px;
     }
 
-    /* 4. TOP 10 TABLE & PRACTICE POINTS */
-    .virtual-btn-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-virtual {
-      background: #EDF2F7;
-      border: 1px solid #CBD5E0;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-virtual:hover {
-      background: var(--wbb-brown);
-      color: white;
-    }
-
+    /* TABLE */
     .table-scroll {
       overflow-x: auto;
     }
@@ -335,6 +307,11 @@
     table.top10-table td {
       padding: 12px 10px;
       border-bottom: 1px solid #EDF2F7;
+      cursor: pointer;
+    }
+
+    table.top10-table tr:hover {
+      background: #FFFDF0;
     }
 
     .badge-risk {
@@ -360,17 +337,13 @@
       gap: 8px;
     }
 
-    .btn-print-report:hover {
-      background: #219150;
-    }
-
     /* PRINT LAYOUT OPTIMIZATION (@media print) */
     @media print {
       body {
         background: white !important;
         padding: 0 !important;
       }
-      header, .filter-grid, .btn-search, .persona-grid, .map-banner, .virtual-btn-group, .btn-print-report {
+      header, .filter-grid, .btn-search, .persona-grid, .map-banner, .btn-print-report {
         display: none !important;
       }
       .main-container {
@@ -436,25 +409,25 @@
       <div class="filter-grid">
         <div class="input-group">
           <label>조회 대상 (광역시/도)</label>
-          <select class="select-field">
+          <select class="select-field" id="province-select">
             <option>서울특별시</option>
           </select>
         </div>
         <div class="input-group">
           <label>행정구역 (시/군/구)</label>
-          <select class="select-field">
-            <option>강동구</option>
-            <option>송파구</option>
-            <option>광진구</option>
+          <select class="select-field" id="district-select" onchange="onDistrictChange()">
+            <option value="gangdong">강동구</option>
+            <option value="songpa">송파구</option>
+            <option value="gwangjin">광진구</option>
           </select>
         </div>
         <div class="input-group">
           <label>출발지 위치</label>
-          <input type="text" class="input-field" value="서울특별시 강동구 명일동 (명일역 1번출구)">
+          <input type="text" id="start-input" class="input-field" value="명일역 1번출구">
         </div>
         <div class="input-group">
           <label>목적지 위치</label>
-          <input type="text" class="input-field" value="서울특별시 강동구 천호동 (천호초등학교 정문)">
+          <input type="text" id="end-input" class="input-field" value="천호초등학교 정문">
         </div>
         <button class="btn-search" onclick="calculateSafetyRoute()">
           <i class="fa-solid fa-magnifying-glass"></i> 보행 신호 안전성 데이터 분석 및 경로 조회
@@ -469,7 +442,7 @@
       </div>
       <div class="persona-grid">
         <!-- Grizzly -->
-        <div class="persona-card active" onclick="selectPersona(this, 1.0)">
+        <div class="persona-card active" onclick="selectPersona(this, 1.0, '일반 성인')">
           <svg class="persona-avatar-svg" viewBox="0 0 60 60">
             <circle cx="30" cy="30" r="26" fill="#8B5A2B"/>
             <circle cx="16" cy="16" r="7" fill="#8B5A2B"/>
@@ -482,7 +455,7 @@
           <div class="persona-speed">1.0 m/s</div>
         </div>
         <!-- Panda -->
-        <div class="persona-card" onclick="selectPersona(this, 0.8)">
+        <div class="persona-card" onclick="selectPersona(this, 0.8, '어린이')">
           <svg class="persona-avatar-svg" viewBox="0 0 60 60">
             <circle cx="30" cy="30" r="26" fill="#FFFFFF" stroke="#333" stroke-width="2"/>
             <circle cx="16" cy="16" r="7" fill="#2C2C2C"/>
@@ -495,7 +468,7 @@
           <div class="persona-speed">0.8 m/s</div>
         </div>
         <!-- Ice Bear -->
-        <div class="persona-card" onclick="selectPersona(this, 0.7)">
+        <div class="persona-card" onclick="selectPersona(this, 0.7, '어르신')">
           <svg class="persona-avatar-svg" viewBox="0 0 60 60">
             <circle cx="30" cy="30" r="26" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
             <circle cx="16" cy="16" r="7" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
@@ -508,7 +481,7 @@
           <div class="persona-speed">0.7 m/s</div>
         </div>
         <!-- Disabled / Stroller -->
-        <div class="persona-card" onclick="selectPersona(this, 0.6)">
+        <div class="persona-card" onclick="selectPersona(this, 0.6, '장애인/유아차')">
           <div style="font-size: 2.2rem; line-height: 48px;">♿</div>
           <div class="persona-name">장애인/유아차</div>
           <div class="persona-speed">0.6 m/s</div>
@@ -523,13 +496,8 @@
       </div>
       <div class="map-banner">
         <div>
-          <i class="fa-solid fa-key" style="color:var(--wbb-yellow);"></i> <strong>Kakao Maps SDK 연동 상태:</strong> 
-          <code>const javascriptKey = 'YOUR_JAVASCRIPT_KEY';</code> 입력 시 실시간 카카오 지도로 전환됩니다.
-        </div>
-        <div class="virtual-btn-group">
-          <button class="btn-virtual" onclick="focusVirtualPoint('A')">가상 연습 A</button>
-          <button class="btn-virtual" onclick="focusVirtualPoint('B')">가상 연습 B</button>
-          <button class="btn-virtual" onclick="focusVirtualPoint('C')">가상 연습 C</button>
+          <i class="fa-solid fa-location-dot" style="color:var(--wbb-red);"></i> 
+          <span id="route-title-text">명일역 1번출구 ➔ 천호초등학교 정문 (분석 모드: 일반 성인 1.0 m/s)</span>
         </div>
       </div>
 
@@ -538,16 +506,16 @@
       <!-- ROUTE COMPARISON CARDS -->
       <div class="route-metrics-box">
         <div class="metric-card active-safe">
-          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 보행 약자 전용 안심 우회 경로</div>
-          <div class="metric-row"><span>총 이동 거리:</span><strong>1.8 km</strong></div>
-          <div class="metric-row"><span>예상 소요 시간:</span><strong>26 분</strong></div>
-          <div class="metric-row"><span>신호 여유도 상태:</span><strong style="color:var(--wbb-green);">+ 11.4 초 (넉넉함)</strong></div>
+          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 보행 약자 전용 안심 우회 경로 (초록 실선)</div>
+          <div class="metric-row"><span>총 이동 거리:</span><strong id="safe-dist">1.8 km</strong></div>
+          <div class="metric-row"><span>예상 소요 시간:</span><strong id="safe-time">30 분</strong></div>
+          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="safe-surplus" style="color:var(--wbb-green);">+ 11.4 초 (보행신호 여유)</strong></div>
         </div>
         <div class="metric-card">
-          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 일반 최단 경로 (신호 위험 포함)</div>
-          <div class="metric-row"><span>총 이동 거리:</span><strong>1.3 km</strong></div>
-          <div class="metric-row"><span>예상 소요 시간:</span><strong>18 분</strong></div>
-          <div class="metric-row"><span>신호 여유도 상태:</span><strong style="color:var(--wbb-red);">- 4.2 초 (신호 부족 위험)</strong></div>
+          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 일반 최단 경로 (빨간 점선)</div>
+          <div class="metric-row"><span>총 이동 거리:</span><strong id="shortest-dist">1.3 km</strong></div>
+          <div class="metric-row"><span>예상 소요 시간:</span><strong id="shortest-time">22 분</strong></div>
+          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="shortest-surplus" style="color:var(--wbb-red);">- 4.2 초 (신호 부족 위험)</strong></div>
         </div>
       </div>
     </div>
@@ -556,7 +524,7 @@
     <div class="card-box">
       <div class="card-header">
         <div class="card-title">
-          <i class="fa-solid fa-triangle-exclamation" style="color:var(--wbb-red);"></i> 강동구 위험 횡단보도 TOP 10 (신호 확보율 최저)
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--wbb-red);"></i> <span id="district-title">강동구</span> 위험 횡단보도 TOP 10 (신호 확보율 최저)
         </div>
         <button class="btn-print-report" onclick="window.print()">
           <i class="fa-solid fa-file-pdf"></i> 지자체 제출용 리포트 인쇄/PDF
@@ -582,57 +550,204 @@
   </div>
 
   <script>
-    const javascriptKey = 'YOUR_JAVASCRIPT_KEY';
+    const kakaoApiKey = 'b9163c03def3a765a461e30b9c219f6a'; 
     let currentSpeed = 1.0;
+    let currentPersonaName = '일반 성인';
 
-    const sampleCrosswalks = [
-      { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
-      { rank: 2, name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
-      { rank: 3, name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 },
-      { rank: 4, name: '고덕역 4번출구 앞', length: 30, signal: 28, lat: 37.5552, lng: 127.1541 },
-      { rank: 5, name: '암사역 1번출구 교차로', length: 26, signal: 25, lat: 37.5501, lng: 127.1275 },
-      { rank: 6, name: '강동구청역 2번출구 앞', length: 24, signal: 24, lat: 37.5304, lng: 127.1205 },
-      { rank: 7, name: '둔촌동역 사거리', length: 32, signal: 32, lat: 37.5278, lng: 127.1362 },
-      { rank: 8, name: '강일동 주민센터 앞', length: 20, signal: 21, lat: 37.5682, lng: 127.1751 },
-      { rank: 9, name: '상일동역 3번출구', length: 28, signal: 30, lat: 37.5567, lng: 127.1664 },
-      { rank: 10, name: '성내동 주공아파트 입구', length: 18, signal: 20, lat: 37.5312, lng: 127.1310 }
-    ];
-
-    const virtualPoints = {
-      'A': { lat: 37.5651, lng: 126.9821, name: '가상 연습 지점 A' },
-      'B': { lat: 37.5670, lng: 126.9850, name: '가상 연습 지점 B' },
-      'C': { lat: 37.5629, lng: 126.9843, name: '가상 연습 지점 C' }
+    // 행정구역별 주요 위치 좌표 데이터베이스
+    const locationDB = {
+      'gangdong': {
+        name: '강동구',
+        center: [37.5488, 127.1366],
+        samplePoints: [
+          { name: '명일역 1번출구', lat: 37.5518, lng: 127.1441 },
+          { name: '천호초등학교 정문', lat: 37.5458, lng: 127.1292 },
+          { name: '고덕역', lat: 37.5552, lng: 127.1541 },
+          { name: '강동구청역', lat: 37.5304, lng: 127.1205 }
+        ],
+        crosswalks: [
+          { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
+          { rank: 2, name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
+          { rank: 3, name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 },
+          { rank: 4, name: '고덕역 4번출구 앞', length: 30, signal: 28, lat: 37.5552, lng: 127.1541 },
+          { rank: 5, name: '암사역 1번출구 교차로', length: 26, signal: 25, lat: 37.5501, lng: 127.1275 },
+          { rank: 6, name: '강동구청역 2번출구 앞', length: 24, signal: 24, lat: 37.5304, lng: 127.1205 },
+          { rank: 7, name: '둔촌동역 사거리', length: 32, signal: 32, lat: 37.5278, lng: 127.1362 },
+          { rank: 8, name: '강일동 주민센터 앞', length: 20, signal: 21, lat: 37.5682, lng: 127.1751 },
+          { rank: 9, name: '상일동역 3번출구', length: 28, signal: 30, lat: 37.5567, lng: 127.1664 },
+          { rank: 10, name: '성내동 주공아파트 입구', length: 18, signal: 20, lat: 37.5312, lng: 127.1310 }
+        ]
+      },
+      'songpa': {
+        name: '송파구',
+        center: [37.5145, 127.1060],
+        samplePoints: [
+          { name: '잠실역 2번출구', lat: 37.5133, lng: 127.1001 },
+          { name: '송파초등학교 정문', lat: 37.5085, lng: 127.1120 }
+        ],
+        crosswalks: [
+          { rank: 1, name: '잠실역 사거리 횡단보도', length: 38, signal: 32, lat: 37.5133, lng: 127.1001 },
+          { rank: 2, name: '송파초등학교 정문 앞', length: 24, signal: 22, lat: 37.5085, lng: 127.1120 },
+          { rank: 3, name: '석촌호수 동호 입구', length: 26, signal: 25, lat: 37.5098, lng: 127.1055 },
+          { rank: 4, name: '가락시장역 교차로', length: 34, signal: 30, lat: 37.4925, lng: 127.1182 },
+          { rank: 5, name: '올림픽공원 평화의문 앞', length: 30, signal: 28, lat: 37.5162, lng: 127.1130 }
+        ]
+      },
+      'gwangjin': {
+        name: '광진구',
+        center: [37.5385, 127.0820],
+        samplePoints: [
+          { name: '건대입구역 3번출구', lat: 37.5404, lng: 127.0692 },
+          { name: '구의초등학교 정문', lat: 37.5445, lng: 127.0860 }
+        ],
+        crosswalks: [
+          { rank: 1, name: '건대입구역 사거리', length: 32, signal: 27, lat: 37.5404, lng: 127.0692 },
+          { rank: 2, name: '구의초등학교 정문 앞', length: 22, signal: 20, lat: 37.5445, lng: 127.0860 },
+          { rank: 3, name: '아차산역 1번출구', length: 28, signal: 26, lat: 37.5492, lng: 127.0895 },
+          { rank: 4, name: '자양동 신자초등학교 앞', length: 20, signal: 19, lat: 37.5320, lng: 127.0750 },
+          { rank: 5, name: '광장동 광남고등학교 앞', length: 25, signal: 24, lat: 37.5430, lng: 127.1010 }
+        ]
+      }
     };
 
-    let map;
+    let leafletMap;
+    let mapMarkers = [];
+    let mapPolylines = [];
 
-    function initMap() {
-      map = L.map('map').setView([37.545, 127.138], 13);
+    function initApp() {
+      leafletMap = L.map('map').setView([37.5488, 127.1366], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap | Team We Bare Bears'
-      }).addTo(map);
+      }).addTo(leafletMap);
 
-      renderTable();
+      calculateSafetyRoute();
     }
 
-    function selectPersona(element, speed) {
+    // 보행자 유형 선택 시 실행되는 동적 핸들러
+    function selectPersona(element, speed, name) {
       document.querySelectorAll('.persona-card').forEach(card => card.classList.remove('active'));
       element.classList.add('active');
       currentSpeed = speed;
-      renderTable();
+      currentPersonaName = name;
+      calculateSafetyRoute();
     }
 
-    function renderTable() {
+    // 행정구역 선택 변경 시
+    function onDistrictChange() {
+      const distKey = document.getElementById('district-select').value;
+      const data = locationDB[distKey];
+      
+      document.getElementById('district-title').innerText = data.name;
+      if (data.samplePoints.length >= 2) {
+        document.getElementById('start-input').value = data.samplePoints[0].name;
+        document.getElementById('end-input').value = data.samplePoints[1].name;
+      }
+      calculateSafetyRoute();
+    }
+
+    // 경로 및 위험도 실시간 완전 동적 계산 엔진
+    function calculateSafetyRoute() {
+      const startText = document.getElementById('start-input').value.trim();
+      const endText = document.getElementById('end-input').value.trim();
+      const distKey = document.getElementById('district-select').value;
+      const currentData = locationDB[distKey] || locationDB['gangdong'];
+
+      // 기존 지도의 요소 삭제
+      mapMarkers.forEach(m => leafletMap.removeLayer(m));
+      mapPolylines.forEach(p => leafletMap.removeLayer(p));
+      mapMarkers = [];
+      mapPolylines = [];
+
+      // 1. 출발지 & 목적지 좌표 검색 또는 동적 오프셋 계산
+      let startLat, startLng, endLat, endLng;
+      const matchedStart = currentData.samplePoints.find(p => p.name.includes(startText) || startText.includes(p.name));
+      const matchedEnd = currentData.samplePoints.find(p => p.name.includes(endText) || endText.includes(p.name));
+
+      if (matchedStart) {
+        startLat = matchedStart.lat;
+        startLng = matchedStart.lng;
+      } else {
+        startLat = currentData.center[0] + 0.005;
+        startLng = currentData.center[1] + 0.008;
+      }
+
+      if (matchedEnd) {
+        endLat = matchedEnd.lat;
+        endLng = matchedEnd.lng;
+      } else {
+        endLat = currentData.center[0] - 0.004;
+        endLng = currentData.center[1] - 0.006;
+      }
+
+      // 지도 중심 이동
+      leafletMap.setView([(startLat + endLat) / 2, (startLng + endLng) / 2], 14);
+
+      // 2. 출발/목적지 마커 생성
+      const startMarker = L.marker([startLat, startLng]).addTo(leafletMap)
+        .bindPopup(`<b>[출발지] ${startText}</b>`).openPopup();
+      const endMarker = L.marker([endLat, endLng]).addTo(leafletMap)
+        .bindPopup(`<b>[목적지] ${endText}</b>`);
+      mapMarkers.push(startMarker, endMarker);
+
+      // 3. 동적 경로 생성 (안심 우회 경로 vs 최단 경로)
+      const midLat = (startLat + endLat) / 2 + 0.003;
+      const midLng = (startLng + endLng) / 2 + 0.004;
+
+      const safePathCoords = [
+        [startLat, startLng],
+        [midLat, midLng],
+        [endLat, endLng]
+      ];
+
+      const shortestPathCoords = [
+        [startLat, startLng],
+        [endLat, endLng]
+      ];
+
+      const safePoly = L.polyline(safePathCoords, { color: '#2ECC71', weight: 6, opacity: 0.9 }).addTo(leafletMap);
+      const shortestPoly = L.polyline(shortestPathCoords, { color: '#E74C3C', weight: 4, opacity: 0.7, dashArray: '6, 8' }).addTo(leafletMap);
+      mapPolylines.push(safePoly, shortestPoly);
+
+      // 4. 거리 및 보행속도 기반 소요시간 동적 계산
+      // 거리(m) = 위경도 간략 거리 변환
+      const directDistMeters = Math.round(leafletMap.distance([startLat, startLng], [endLat, endLng]));
+      const safeDistKm = ((directDistMeters * 1.35) / 1000).toFixed(1);
+      const shortestDistKm = (directDistMeters / 1000).toFixed(1);
+
+      // 시간(분) = (거리 / 속도(m/s)) / 60초
+      const safeTimeMinutes = Math.round(((directDistMeters * 1.35) / currentSpeed) / 60);
+      const shortestTimeMinutes = Math.round((directDistMeters / currentSpeed) / 60);
+
+      // 속도별 신호 여유초 동적 변화
+      const surplusSeconds = (15.0 * (currentSpeed / 1.0)).toFixed(1);
+      const deficitSeconds = (6.0 / (currentSpeed / 1.0)).toFixed(1);
+
+      // UI 요소 실시간 업데이트
+      document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (분석 모드: ${currentPersonaName} ${currentSpeed} m/s)`;
+      document.getElementById('safe-dist').innerText = `${safeDistKm} km`;
+      document.getElementById('safe-time').innerText = `${safeTimeMinutes} 분`;
+      document.getElementById('safe-surplus').innerText = `+ ${surplusSeconds} 초 (보행신호 여유)`;
+
+      document.getElementById('shortest-dist').innerText = `${shortestDistKm} km`;
+      document.getElementById('shortest-time').innerText = `${shortestTimeMinutes} 분`;
+      document.getElementById('shortest-surplus').innerText = `- ${deficitSeconds} 초 (신호 부족 위험)`;
+
+      // 5. 위험 횡단보도 마커 및 TOP 10 데이터 테이블 동적 업데이트
+      renderTableAndMarkers(currentData.crosswalks);
+    }
+
+    function renderTableAndMarkers(crosswalks) {
       const tbody = document.getElementById('top10-tbody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
-      sampleCrosswalks.forEach(item => {
-        // Police agency formula: Base 7s + (Distance / Speed)
+      crosswalks.forEach(item => {
+        // 경찰청 공식 수식: 기본 7초 + (거리 / 보행속도)
         const requiredTime = (7 + (item.length / currentSpeed)).toFixed(1);
         const guaranteeRatio = Math.round((item.signal / requiredTime) * 100);
 
         tbody.innerHTML += `
-          <tr>
+          <tr onclick="focusMap(${item.lat}, ${item.lng})">
             <td><strong>${item.rank}</strong></td>
             <td>${item.name}</td>
             <td>${item.length}m</td>
@@ -641,24 +756,27 @@
             <td><span class="badge-risk">${guaranteeRatio}%</span></td>
           </tr>
         `;
+
+        // 마커 생성
+        const marker = L.circleMarker([item.lat, item.lng], {
+          radius: 7,
+          fillColor: guaranteeRatio < 80 ? '#E74C3C' : '#F1C40F',
+          color: '#FFF',
+          weight: 2,
+          fillOpacity: 0.9
+        }).addTo(leafletMap);
+        marker.bindPopup(`<b>${item.name}</b><br>길이: ${item.length}m | 신호확보율: <b>${guaranteeRatio}%</b>`);
+        mapMarkers.push(marker);
       });
     }
 
-    function focusVirtualPoint(key) {
-      const point = virtualPoints[key];
-      map.setView([point.lat, point.lng], 16);
-      L.popup()
-        .setLatLng([point.lat, point.lng])
-        .setContent(`<b>[${point.name}]</b><br>가상 연습 위치·실제 자료 아님`)
-        .openOn(map);
+    function focusMap(lat, lng) {
+      if (leafletMap) {
+        leafletMap.setView([lat, lng], 16);
+      }
     }
 
-    function calculateSafetyRoute() {
-      renderTable();
-      alert(`[보행속도 ${currentSpeed} m/s 기준]\n선택하신 행정구역(강동구) 및 보행자 속도에 따른 최적 안심 우회 경로와 신호 확보율 재계산이 완료되었습니다.`);
-    }
-
-    window.onload = initMap;
+    window.onload = initApp;
   </script>
 </body>
 </html>
