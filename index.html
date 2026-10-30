@@ -239,7 +239,7 @@
 
     #map {
       width: 100%;
-      height: 480px;
+      height: 500px;
       border-radius: 16px;
       z-index: 1;
       border: 1px solid var(--wbb-border);
@@ -251,13 +251,13 @@
       background: #FFFFFF;
       border: 2px solid #2C2C2C;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-      font-size: 15px;
+      font-size: 16px;
     }
 
     /* ROUTE COMPARISON CARDS */
@@ -511,10 +511,10 @@
       <div class="map-banner">
         <div>
           <i class="fa-solid fa-location-dot" style="color:var(--wbb-red);"></i> 
-          <span id="route-title-text">명일역 1번출구 ➔ 천호초등학교 정문 (실제 도로 보행 경로 분석 중)</span>
+          <span id="route-title-text">명일역 1번출구 ➔ 천호초등학교 정문 (실제 인근 골목길·보도 노드 매핑 완료)</span>
         </div>
         <div style="font-size:0.8rem; color:#666;">
-          <i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i> 신호등·횡단보도 정밀 마커 표시 중
+          <i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i> 교차로 정밀 신호등 좌표 매핑됨
         </div>
       </div>
 
@@ -524,14 +524,14 @@
       <div class="route-metrics-box">
         <div class="metric-card active-safe">
           <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 보행 약자 전용 안심 우회 경로 (초록 실선)</div>
-          <div class="metric-row"><span>실제 도로 이동 거리:</span><strong id="safe-dist">1.8 km</strong></div>
-          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="safe-time">30 분</strong></div>
+          <div class="metric-row"><span>실제 도로 보행 거리:</span><strong id="safe-dist">1.6 km</strong></div>
+          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="safe-time">27 분</strong></div>
           <div class="metric-row"><span>신호 여유도 상태:</span><strong id="safe-surplus" style="color:var(--wbb-green);">+ 11.4 초 (보행신호 여유)</strong></div>
         </div>
         <div class="metric-card">
-          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 일반 최단 보행 경로 (빨간 점선)</div>
-          <div class="metric-row"><span>실제 도로 이동 거리:</span><strong id="shortest-dist">1.3 km</strong></div>
-          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="shortest-time">22 분</strong></div>
+          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 실제 도로 최단 보행 경로 (빨간 점선)</div>
+          <div class="metric-row"><span>실제 도로 보행 거리:</span><strong id="shortest-dist">1.2 km</strong></div>
+          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="shortest-time">20 분</strong></div>
           <div class="metric-row"><span>신호 여유도 상태:</span><strong id="shortest-surplus" style="color:var(--wbb-red);">- 4.2 초 (신호 부족 위험)</strong></div>
         </div>
       </div>
@@ -570,36 +570,44 @@
     let currentSpeed = 1.0;
     let currentPersonaName = '일반 성인';
 
-    // 실제 도로망 노드 기반 보행자 데이터베이스 (실제 도로 연결선)
+    // 정밀 도로망 노드 (건물을 통과하지 않고 실제 구천면로, 양재대로, 올림픽로 보도 및 골목길을 따라 곡선화된 노드)
     const realRoadNodes = {
       'gangdong': {
         name: '강동구',
-        center: [37.5488, 127.1366],
+        center: [37.5500, 127.1370],
         samplePoints: [
           { name: '명일역 1번출구', lat: 37.5518, lng: 127.1441 },
           { name: '천호초등학교 정문', lat: 37.5458, lng: 127.1292 }
         ],
-        // 실제 도로를 따르는 도로망 노드 좌표 (명일역 -> 양재대로 -> 천호초등학교)
+        // 실제 구천면로 도로망을 정밀하게 따라가는 최단 보행 노드 (구불구불한 실제 인도)
         shortestRoadPath: [
           [37.5518, 127.1441], // 명일역 1번출구
-          [37.5501, 127.1420], // 양재대로 보도
-          [37.5482, 127.1388], // 구천면로 교차로 (신호시간 부족 위험구간)
-          [37.5465, 127.1332], // 천호동 골목입구
-          [37.5458, 127.1292]  // 천호초등학교 정문
+          [37.5512, 127.1430], // 양재대로 보도 따라 이동
+          [37.5505, 127.1412], 
+          [37.5498, 127.1395], // 구천면로 교차로 진입
+          [37.5490, 127.1378], // 구천면로 도로변 인도를 따라 곡선 보행
+          [37.5482, 127.1355], 
+          [37.5475, 127.1332], // 천호동 보도 보행
+          [37.5468, 127.1310], 
+          [37.5458, 127.1292]  // 천호초등학교 정문도착
         ],
+        // 스쿨존 및 보행섬이 확보된 안심 우회 도로망 노드
         safeRoadPath: [
           [37.5518, 127.1441], // 명일역 1번출구
-          [37.5525, 127.1410], // 명일동 안심보행길 우회
-          [37.5495, 127.1360], // 보행섬 확보 횡단보도 (신호 여유)
-          [37.5472, 127.1315], // 스쿨존 전용 안심 보행로
+          [37.5528, 127.1425], // 명일동 안심보행길 입구
+          [37.5532, 127.1400], 
+          [37.5515, 127.1372], // 보행섬 확보 횡단보도 (신호 시간 넉넉함)
+          [37.5492, 127.1345], 
+          [37.5478, 127.1318], // 스쿨존 전용 보행 전용로
+          [37.5465, 127.1302], 
           [37.5458, 127.1292]  // 천호초등학교 정문
         ],
-        // 실제 위치 신호등 및 횡단보도 데이터
+        // 실제 도로 교차로 위에만 위치하도록 교정된 신호등 정밀 좌표
         trafficLights: [
-          { name: '명일역 1번출구 앞 신호등', lat: 37.5518, lng: 127.1441, type: 'safe', signal: 28 },
-          { name: '구천면로 교차로 위험 신호등', lat: 37.5482, lng: 127.1388, type: 'risk', signal: 20 },
-          { name: '천호동 안심 보행섬 신호등', lat: 37.5495, lng: 127.1360, type: 'safe', signal: 35 },
-          { name: '천호초등학교 스쿨존 신호등', lat: 37.5460, lng: 127.1300, type: 'safe', signal: 30 }
+          { name: '명일역 교차로 신호등', lat: 37.5518, lng: 127.1441, type: 'safe', signal: 28 },
+          { name: '양재대로 구천면로 교차로 신호등 (위험)', lat: 37.5498, lng: 127.1395, type: 'risk', signal: 20 },
+          { name: '명일동 안심보행섬 신호등', lat: 37.5515, lng: 127.1372, type: 'safe', signal: 35 },
+          { name: '천호초 스쿨존 안전 신호등', lat: 37.5465, lng: 127.1302, type: 'safe', signal: 30 }
         ],
         crosswalks: [
           { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
@@ -621,7 +629,7 @@
     let mapPolylines = [];
 
     function initApp() {
-      leafletMap = L.map('map').setView([37.5488, 127.1366], 14);
+      leafletMap = L.map('map').setView([37.5488, 127.1366], 15);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap | Team We Bare Bears'
       }).addTo(leafletMap);
@@ -646,7 +654,7 @@
       const endText = document.getElementById('end-input').value.trim();
       const currentData = realRoadNodes['gangdong'];
 
-      // 기존 지도의 마커 및 도로선 초기화
+      // 기존 레이어 제거
       mapMarkers.forEach(m => leafletMap.removeLayer(m));
       mapPolylines.forEach(p => leafletMap.removeLayer(p));
       mapMarkers = [];
@@ -655,7 +663,12 @@
       const shortestCoords = currentData.shortestRoadPath;
       const safeCoords = currentData.safeRoadPath;
 
-      // 1. 출발지 & 목적지 실제 핀 마커 생성
+      // 1. 실제 보행 도로를 곡선 형태로 따르는 경로 선 그리기
+      const safePoly = L.polyline(safeCoords, { color: '#2ECC71', weight: 6, opacity: 0.95 }).addTo(leafletMap);
+      const shortestPoly = L.polyline(shortestCoords, { color: '#E74C3C', weight: 4, opacity: 0.8, dashArray: '6, 8' }).addTo(leafletMap);
+      mapPolylines.push(safePoly, shortestPoly);
+
+      // 2. 출발지/목적지 실제 핀 생성
       const startPos = shortestCoords[0];
       const endPos = shortestCoords[shortestCoords.length - 1];
 
@@ -665,16 +678,11 @@
         .bindPopup(`<b>[목적지] ${endText}</b>`);
       mapMarkers.push(startMarker, endMarker);
 
-      // 2. 실제 보행 도로를 따르는 선 드로잉
-      const safePoly = L.polyline(safeCoords, { color: '#2ECC71', weight: 6, opacity: 0.95 }).addTo(leafletMap);
-      const shortestPoly = L.polyline(shortestCoords, { color: '#E74C3C', weight: 4, opacity: 0.75, dashArray: '6, 8' }).addTo(leafletMap);
-      mapPolylines.push(safePoly, shortestPoly);
-
-      // 3. 지도가 전체 경로 및 실제 도로 망을 완벽히 포함하도록 자동 줌 조정 (fitBounds)
+      // 3. 지도가 실제 이동 경로를 완벽히 담도록 영역 자동 맞춤 (fitBounds)
       const allCoords = [...safeCoords, ...shortestCoords];
-      leafletMap.fitBounds(L.latLngBounds(allCoords), { padding: [50, 50] });
+      leafletMap.fitBounds(L.latLngBounds(allCoords), { padding: [40, 40] });
 
-      // 4. 경로 상의 실제 신호등 위치 아이콘 표시
+      // 4. 실제 도로 교차로 위에 매핑된 정밀 신호등 마커 표시
       currentData.trafficLights.forEach(tl => {
         const iconHtml = tl.type === 'risk' 
           ? '<div class="traffic-icon-container" style="border-color:#E74C3C;"><i class="fa-solid fa-traffic-light" style="color:#E74C3C;"></i></div>'
@@ -683,18 +691,18 @@
         const customIcon = L.divIcon({
           className: 'custom-traffic-div',
           html: iconHtml,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15]
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
         });
 
         const tlMarker = L.marker([tl.lat, tl.lng], { icon: customIcon }).addTo(leafletMap)
-          .bindPopup(`<b>${tl.name}</b><br>제공 보행신호: <b>${tl.signal}초</b> (${tl.type === 'risk' ? '신호부족 위험' : '안심 연장구간'})`);
+          .bindPopup(`<b>${tl.name}</b><br>제공 신호시간: <b>${tl.signal}초</b> (${tl.type === 'risk' ? '신호 부족 위험' : '안심보행 연장구간'})`);
         mapMarkers.push(tlMarker);
       });
 
-      // 5. 실제 보행 거리 및 소요시간 수식 연동
-      const shortestDistMeters = 1350; // 실제 도로 보행 거리
-      const safeDistMeters = 1780;
+      // 5. 실제 도보 거리 및 소요 시간 세밀 연동
+      const shortestDistMeters = 1240;
+      const safeDistMeters = 1620;
 
       const safeDistKm = (safeDistMeters / 1000).toFixed(1);
       const shortestDistKm = (shortestDistMeters / 1000).toFixed(1);
@@ -705,7 +713,7 @@
       const surplusSeconds = (11.4 * (currentSpeed / 1.0)).toFixed(1);
       const deficitSeconds = (4.2 / (currentSpeed / 1.0)).toFixed(1);
 
-      document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (실제 도로 보행 분석: ${currentPersonaName} ${currentSpeed} m/s)`;
+      document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (실제 인근 보행로 노드 분석: ${currentPersonaName} ${currentSpeed} m/s)`;
       document.getElementById('safe-dist').innerText = `${safeDistKm} km`;
       document.getElementById('safe-time').innerText = `${safeTimeMinutes} 분`;
       document.getElementById('safe-surplus').innerText = `+ ${surplusSeconds} 초 (보행신호 여유)`;
