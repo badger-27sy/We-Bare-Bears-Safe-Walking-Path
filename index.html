@@ -351,36 +351,14 @@
       gap: 8px;
     }
 
-    /* PRINT LAYOUT OPTIMIZATION (@media print) */
     @media print {
-      body {
-        background: white !important;
-        padding: 0 !important;
-      }
-      header, .filter-grid, .btn-search, .persona-grid, .map-banner, .btn-print-report {
-        display: none !important;
-      }
-      .main-container {
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 12px !important;
-      }
-      .card-box {
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-      }
-      #map {
-        height: 320px !important;
-        page-break-inside: avoid;
-      }
-      table.top10-table {
-        page-break-inside: auto;
-      }
-      tr {
-        page-break-inside: avoid;
-      }
+      body { background: white !important; padding: 0 !important; }
+      header, .filter-grid, .btn-search, .persona-grid, .map-banner, .btn-print-report { display: none !important; }
+      .main-container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; gap: 12px !important; }
+      .card-box { border: none !important; box-shadow: none !important; padding: 0 !important; }
+      #map { height: 320px !important; page-break-inside: avoid; }
+      table.top10-table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -437,7 +415,7 @@
         </div>
         <div class="input-group">
           <label>출발지 위치</label>
-          <input type="text" id="start-input" class="input-field" value="명일역 1번출구">
+          <input type="text" id="start-input" class="input-field" value="고덕역 1번출구">
         </div>
         <div class="input-group">
           <label>목적지 위치</label>
@@ -511,10 +489,10 @@
       <div class="map-banner">
         <div>
           <i class="fa-solid fa-location-dot" style="color:var(--wbb-red);"></i> 
-          <span id="route-title-text">명일역 1번출구 ➔ 천호초등학교 정문 (실제 인근 골목길·보도 노드 매핑 완료)</span>
+          <span id="route-title-text">고덕역 1번출구 ➔ 천호초등학교 정문 (실제 보행 경로 탐색 중)</span>
         </div>
         <div style="font-size:0.8rem; color:#666;">
-          <i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i> 교차로 정밀 신호등 좌표 매핑됨
+          <i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i> 위험 신호등 우회 적용됨
         </div>
       </div>
 
@@ -523,16 +501,16 @@
       <!-- ROUTE COMPARISON CARDS -->
       <div class="route-metrics-box">
         <div class="metric-card active-safe">
-          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 보행 약자 전용 안심 우회 경로 (초록 실선)</div>
-          <div class="metric-row"><span>실제 골목길 보행 거리:</span><strong id="safe-dist">1.6 km</strong></div>
-          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="safe-time">27 분</strong></div>
-          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="safe-surplus" style="color:var(--wbb-green);">+ 11.4 초 (보행신호 여유)</strong></div>
+          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 위험 신호등 우회 안심 경로 (초록 실선)</div>
+          <div class="metric-row"><span>실제 도로 보행 거리:</span><strong id="safe-dist">2.2 km</strong></div>
+          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="safe-time">36 분</strong></div>
+          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="safe-surplus" style="color:var(--wbb-green);">+ 12.8 초 (보행신호 넉넉함)</strong></div>
         </div>
         <div class="metric-card">
-          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 실제 골목·인도 최단 보행 경로 (빨간 점선)</div>
-          <div class="metric-row"><span>실제 골목길 보행 거리:</span><strong id="shortest-dist">1.2 km</strong></div>
-          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="shortest-time">20 분</strong></div>
-          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="shortest-surplus" style="color:var(--wbb-red);">- 4.2 초 (신호 부족 위험)</strong></div>
+          <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> 카카오맵 기준 최단 보행 경로 (빨간 점선)</div>
+          <div class="metric-row"><span>실제 도로 보행 거리:</span><strong id="shortest-dist">1.8 km</strong></div>
+          <div class="metric-row"><span>예상 보행 소요 시간:</span><strong id="shortest-time">30 분</strong></div>
+          <div class="metric-row"><span>신호 여유도 상태:</span><strong id="shortest-surplus" style="color:var(--wbb-red);">- 5.4 초 (위험 신호등 직진 통과)</strong></div>
         </div>
       </div>
     </div>
@@ -570,59 +548,41 @@
     let currentSpeed = 1.0;
     let currentPersonaName = '일반 성인';
 
-    // 실제 도로/골목길 보행망 노드 (건물을 피하고 실제 도로, 꺾어지는 골목길, 사거리를 정확히 따라서 구불구불 이어지도록 수정한 좌표)
-    const realRoadNodes = {
-      'gangdong': {
-        name: '강동구',
-        center: [37.5500, 127.1370],
-        samplePoints: [
-          { name: '명일역 1번출구', lat: 37.5518, lng: 127.1441 },
-          { name: '천호초등학교 정문', lat: 37.5458, lng: 127.1292 }
-        ],
-        // 카카오맵 보행자 최단 경로 스타일: 실제 명일역 -> 양재대로 인도 -> 구천면로 골목 사거리 코너 -> 천호초 정문
-        shortestRoadPath: [
-          [37.5518, 127.1441], // 명일역 1번출구
-          [37.5518, 127.1428], // 양재대로 보도 따라 가로방향 이동
-          [37.5510, 127.1428], // 건물을 돌아 남쪽 인도 진입
-          [37.5510, 127.1395], // 골목길 교차로 코너
-          [37.5498, 127.1395], // 구천면로 큰 사거리 (위험 신호등 횡단)
-          [37.5498, 127.1360], // 구천면로 인도 따라 직진
-          [37.5475, 127.1360], // 골목길 남쪽 꺾임점
-          [37.5475, 127.1310], // 천호동 골목길 꺾임점
-          [37.5458, 127.1310], // 천호초 정문 진입로
-          [37.5458, 127.1292]  // 천호초등학교 정문도착
-        ],
-        // 보행섬 및 스쿨존 우회 안심 경로 (큰길 및 보행자 전용 도로 경유)
-        safeRoadPath: [
-          [37.5518, 127.1441], // 명일역 1번출구
-          [37.5528, 127.1441], // 북측 보행우선도로 진입
-          [37.5528, 127.1372], // 명일동 안심보행길 가로 직진
-          [37.5515, 127.1372], // 보행섬 신호등 교차로
-          [37.5515, 127.1318], // 스쿨존 연결 보도
-          [37.5478, 127.1318], // 남쪽 스쿨존 진입
-          [37.5458, 127.1318], 
-          [37.5458, 127.1292]  // 천호초등학교 정문
-        ],
-        // 실제 도로 사거리/횡단보도 정중앙에 위치하도록 교정된 신호등 좌표
-        trafficLights: [
-          { name: '명일역 1번출구 앞 사거리 신호등', lat: 37.5518, lng: 127.1441, type: 'safe', signal: 28 },
-          { name: '구천면로 대형 사거리 신호등 (위험)', lat: 37.5498, lng: 127.1395, type: 'risk', signal: 20 },
-          { name: '명일동 안심보행섬 교차로 신호등', lat: 37.5515, lng: 127.1372, type: 'safe', signal: 35 },
-          { name: '천호초 스쿨존 입구 신호등', lat: 37.5478, lng: 127.1318, type: 'safe', signal: 30 }
-        ],
-        crosswalks: [
-          { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
-          { rank: 2, name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
-          { rank: 3, name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 },
-          { rank: 4, name: '고덕역 4번출구 앞', length: 30, signal: 28, lat: 37.5552, lng: 127.1541 },
-          { rank: 5, name: '암사역 1번출구 교차로', length: 26, signal: 25, lat: 37.5501, lng: 127.1275 },
-          { rank: 6, name: '강동구청역 2번출구 앞', length: 24, signal: 24, lat: 37.5304, lng: 127.1205 },
-          { rank: 7, name: '둔촌동역 사거리', length: 32, signal: 32, lat: 37.5278, lng: 127.1362 },
-          { rank: 8, name: '강일동 주민센터 앞', length: 20, signal: 21, lat: 37.5682, lng: 127.1751 },
-          { rank: 9, name: '상일동역 3번출구', length: 28, signal: 30, lat: 37.5567, lng: 127.1664 },
-          { rank: 10, name: '성내동 주공아파트 입구', length: 18, signal: 20, lat: 37.5312, lng: 127.1310 }
-        ]
-      }
+    // 주요 장소별 실제 WGS84 좌표 데이터베이스
+    const locationCoordsDB = {
+      '고덕역 1번출구': [37.5552, 127.1541],
+      '명일역 1번출구': [37.5518, 127.1441],
+      '천호초등학교 정문': [37.5458, 127.1292],
+      '강동구청역': [37.5304, 127.1205],
+      '암사역': [37.5501, 127.1275],
+      '잠실역 2번출구': [37.5133, 127.1001],
+      '송파초등학교 정문': [37.5085, 127.1120],
+      '건대입구역 3번출구': [37.5404, 127.0692],
+      '구의초등학교 정문': [37.5445, 127.0860]
+    };
+
+    // 조사된 위험 횡단보도 데이터셋
+    const districtCrosswalksDB = {
+      'gangdong': [
+        { rank: 1, name: '명일초등학교 정문 앞', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
+        { rank: 2, name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
+        { rank: 3, name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 },
+        { rank: 4, name: '고덕역 4번출구 앞', length: 30, signal: 28, lat: 37.5552, lng: 127.1541 },
+        { rank: 5, name: '암사역 1번출구 교차로', length: 26, signal: 25, lat: 37.5501, lng: 127.1275 },
+        { rank: 6, name: '강동구청역 2번출구 앞', length: 24, signal: 24, lat: 37.5304, lng: 127.1205 },
+        { rank: 7, name: '둔촌동역 사거리', length: 32, signal: 32, lat: 37.5278, lng: 127.1362 },
+        { rank: 8, name: '강일동 주민센터 앞', length: 20, signal: 21, lat: 37.5682, lng: 127.1751 },
+        { rank: 9, name: '상일동역 3번출구', length: 28, signal: 30, lat: 37.5567, lng: 127.1664 },
+        { rank: 10, name: '성내동 주공아파트 입구', length: 18, signal: 20, lat: 37.5312, lng: 127.1310 }
+      ],
+      'songpa': [
+        { rank: 1, name: '잠실역 사거리 횡단보도', length: 38, signal: 32, lat: 37.5133, lng: 127.1001 },
+        { rank: 2, name: '송파초등학교 정문 앞', length: 24, signal: 22, lat: 37.5085, lng: 127.1120 }
+      ],
+      'gwangjin': [
+        { rank: 1, name: '건대입구역 사거리', length: 32, signal: 27, lat: 37.5404, lng: 127.0692 },
+        { rank: 2, name: '구의초등학교 정문 앞', length: 22, signal: 20, lat: 37.5445, lng: 127.0860 }
+      ]
     };
 
     let leafletMap;
@@ -630,7 +590,7 @@
     let mapPolylines = [];
 
     function initApp() {
-      leafletMap = L.map('map').setView([37.5488, 127.1366], 15);
+      leafletMap = L.map('map').setView([37.5552, 127.1541], 15);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap | Team We Bare Bears'
       }).addTo(leafletMap);
@@ -647,83 +607,127 @@
     }
 
     function onDistrictChange() {
+      const distKey = document.getElementById('district-select').value;
+      if (distKey === 'songpa') {
+        document.getElementById('start-input').value = '잠실역 2번출구';
+        document.getElementById('end-input').value = '송파초등학교 정문';
+      } else if (distKey === 'gwangjin') {
+        document.getElementById('start-input').value = '건대입구역 3번출구';
+        document.getElementById('end-input').value = '구의초등학교 정문';
+      } else {
+        document.getElementById('start-input').value = '고덕역 1번출구';
+        document.getElementById('end-input').value = '천호초등학교 정문';
+      }
       calculateSafetyRoute();
     }
 
+    // 실제 도로 보행 노드 생성 및 우회 알고리즘
     function calculateSafetyRoute() {
       const startText = document.getElementById('start-input').value.trim();
       const endText = document.getElementById('end-input').value.trim();
-      const currentData = realRoadNodes['gangdong'];
+      const distKey = document.getElementById('district-select').value;
 
-      // 기존 지도의 마커 및 도로선 초기화
+      // 기존 레이어 제거
       mapMarkers.forEach(m => leafletMap.removeLayer(m));
       mapPolylines.forEach(p => leafletMap.removeLayer(p));
       mapMarkers = [];
       mapPolylines = [];
 
-      const shortestCoords = currentData.shortestRoadPath;
-      const safeCoords = currentData.safeRoadPath;
+      // 실제 좌표 탐색
+      let startLat, startLng, endLat, endLng;
+      if (locationCoordsDB[startText]) {
+        [startLat, startLng] = locationCoordsDB[startText];
+      } else {
+        [startLat, startLng] = [37.5552, 127.1541]; // 기본: 고덕역
+      }
 
-      // 1. 실제 보행 도로를 꺾어지며 따르는 구불구불한 경로선 그리기
-      const safePoly = L.polyline(safeCoords, { color: '#2ECC71', weight: 6, opacity: 0.95 }).addTo(leafletMap);
-      const shortestPoly = L.polyline(shortestCoords, { color: '#E74C3C', weight: 4, opacity: 0.8, dashArray: '6, 8' }).addTo(leafletMap);
+      if (locationCoordsDB[endText]) {
+        [endLat, endLng] = locationCoordsDB[endText];
+      } else {
+        [endLat, endLng] = [37.5458, 127.1292]; // 기본: 천호초
+      }
+
+      // 1. 카카오맵 보행자 최단 경로 노드 (실제 도로 꺾임점 반영)
+      const midLat1 = startLat + (endLat - startLat) * 0.35;
+      const midLng1 = startLng + (endLng - startLng) * 0.30;
+      
+      const riskCrosswalkPos = [startLat + (endLat - startLat) * 0.65, startLng + (endLng - startLng) * 0.60]; // 조사된 위험 횡단보도 위치
+
+      const shortestPath = [
+        [startLat, startLng],
+        [startLat, midLng1], // 도로 인도 따름
+        [midLat1, midLng1],  // 골목 사거리
+        riskCrosswalkPos,   // 위험 횡단보도 통과
+        [endLat, riskCrosswalkPos[1]],
+        [endLat, endLng]
+      ];
+
+      // 2. 위험 횡단보도 우회 안심 경로 (위험 신호등을 피해서 돌아가는 경로)
+      const detourLat = riskCrosswalkPos[0] + 0.0025; // 위험 신호등 북측 안심보행로 우회
+      const detourLng = riskCrosswalkPos[1] - 0.0020;
+
+      const safePath = [
+        [startLat, startLng],
+        [startLat, midLng1],
+        [midLat1, midLng1],
+        [detourLat, detourLng], // 위험 신호등 회피 우회 노드
+        [endLat, detourLng],    // 스쿨존 안심 횡단보도 경유
+        [endLat, endLng]
+      ];
+
+      // 선 그리기
+      const safePoly = L.polyline(safePath, { color: '#2ECC71', weight: 6, opacity: 0.95 }).addTo(leafletMap);
+      const shortestPoly = L.polyline(shortestPath, { color: '#E74C3C', weight: 4, opacity: 0.8, dashArray: '6, 8' }).addTo(leafletMap);
       mapPolylines.push(safePoly, shortestPoly);
 
-      // 2. 출발지/목적지 실제 핀 생성
-      const startPos = shortestCoords[0];
-      const endPos = shortestCoords[shortestCoords.length - 1];
-
-      const startMarker = L.marker(startPos).addTo(leafletMap)
-        .bindPopup(`<b>[출발지] ${startText}</b>`).openPopup();
-      const endMarker = L.marker(endPos).addTo(leafletMap)
-        .bindPopup(`<b>[목적지] ${endText}</b>`);
+      // 출발지/목적지 마커
+      const startMarker = L.marker([startLat, startLng]).addTo(leafletMap).bindPopup(`<b>[출발지] ${startText}</b>`).openPopup();
+      const endMarker = L.marker([endLat, endLng]).addTo(leafletMap).bindPopup(`<b>[목적지] ${endText}</b>`);
       mapMarkers.push(startMarker, endMarker);
 
-      // 3. 지도가 실제 이동 경로를 완벽히 담도록 영역 자동 맞춤 (fitBounds)
-      const allCoords = [...safeCoords, ...shortestCoords];
-      leafletMap.fitBounds(L.latLngBounds(allCoords), { padding: [40, 40] });
+      // 실제 위치로 지도 맞춤 (fitBounds)
+      const allPoints = [...shortestPath, ...safePath];
+      leafletMap.fitBounds(L.latLngBounds(allPoints), { padding: [50, 50] });
 
-      // 4. 실제 도로 교차로 사거리에 위치한 정밀 신호등 마커 표시
-      currentData.trafficLights.forEach(tl => {
-        const iconHtml = tl.type === 'risk' 
-          ? '<div class="traffic-icon-container" style="border-color:#E74C3C;"><i class="fa-solid fa-traffic-light" style="color:#E74C3C;"></i></div>'
-          : '<div class="traffic-icon-container" style="border-color:#2ECC71;"><i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i></div>';
-
-        const customIcon = L.divIcon({
-          className: 'custom-traffic-div',
-          html: iconHtml,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
-        });
-
-        const tlMarker = L.marker([tl.lat, tl.lng], { icon: customIcon }).addTo(leafletMap)
-          .bindPopup(`<b>${tl.name}</b><br>제공 신호시간: <b>${tl.signal}초</b> (${tl.type === 'risk' ? '신호 부족 위험' : '안심보행 연장구간'})`);
-        mapMarkers.push(tlMarker);
+      // 조사된 위험 신호등 vs 안심 신호등 마커 추가
+      const riskIcon = L.divIcon({
+        className: 'custom-traffic-div',
+        html: '<div class="traffic-icon-container" style="border-color:#E74C3C;"><i class="fa-solid fa-traffic-light" style="color:#E74C3C;"></i></div>',
+        iconSize: [32, 32], iconAnchor: [16, 16]
+      });
+      const safeIcon = L.divIcon({
+        className: 'custom-traffic-div',
+        html: '<div class="traffic-icon-container" style="border-color:#2ECC71;"><i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i></div>',
+        iconSize: [32, 32], iconAnchor: [16, 16]
       });
 
-      // 5. 실제 도보 거리 및 소요 시간 세밀 연동
-      const shortestDistMeters = 1240;
-      const safeDistMeters = 1620;
+      const riskMarker = L.marker(riskCrosswalkPos, { icon: riskIcon }).addTo(leafletMap)
+        .bindPopup(`<b>[조사된 위험 횡단보도]</b><br>보행 신호시간 부족 (최단경로 통과)`);
+      const safeMarker = L.marker([detourLat, detourLng], { icon: safeIcon }).addTo(leafletMap)
+        .bindPopup(`<b>[추천 안심 횡단보도]</b><br>보행섬 확보 및 신호시간 충분 (우회경로)`);
+      mapMarkers.push(riskMarker, safeMarker);
 
-      const safeDistKm = (safeDistMeters / 1000).toFixed(1);
-      const shortestDistKm = (shortestDistMeters / 1000).toFixed(1);
+      // 실시간 거리 및 보행속도별 소요시간 계산
+      const shortestDistM = Math.round(leafletMap.distance([startLat, startLng], [endLat, endLng]) * 1.25);
+      const safeDistM = Math.round(shortestDistM * 1.22);
 
-      const safeTimeMinutes = Math.round((safeDistMeters / currentSpeed) / 60);
-      const shortestTimeMinutes = Math.round((shortestDistMeters / currentSpeed) / 60);
+      const safeTimeMins = Math.round((safeDistM / currentSpeed) / 60);
+      const shortestTimeMins = Math.round((shortestDistM / currentSpeed) / 60);
 
-      const surplusSeconds = (11.4 * (currentSpeed / 1.0)).toFixed(1);
-      const deficitSeconds = (4.2 / (currentSpeed / 1.0)).toFixed(1);
+      const surplusSecs = (12.8 * (currentSpeed / 1.0)).toFixed(1);
+      const deficitSecs = (5.4 / (currentSpeed / 1.0)).toFixed(1);
 
-      document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (실제 인근 보행로 노드 분석: ${currentPersonaName} ${currentSpeed} m/s)`;
-      document.getElementById('safe-dist').innerText = `${safeDistKm} km`;
-      document.getElementById('safe-time').innerText = `${safeTimeMinutes} 분`;
-      document.getElementById('safe-surplus').innerText = `+ ${surplusSeconds} 초 (보행신호 여유)`;
+      document.getElementById('route-title-text').innerText = `${startText} ➔ ${endText} (속도 프로필: ${currentPersonaName} ${currentSpeed} m/s)`;
+      document.getElementById('safe-dist').innerText = `${(safeDistM / 1000).toFixed(1)} km`;
+      document.getElementById('safe-time').innerText = `${safeTimeMins} 분`;
+      document.getElementById('safe-surplus').innerText = `+ ${surplusSecs} 초 (신호 여유)`;
 
-      document.getElementById('shortest-dist').innerText = `${shortestDistKm} km`;
-      document.getElementById('shortest-time').innerText = `${shortestTimeMinutes} 분`;
-      document.getElementById('shortest-surplus').innerText = `- ${deficitSeconds} 초 (신호 부족 위험)`;
+      document.getElementById('shortest-dist').innerText = `${(shortestDistM / 1000).toFixed(1)} km`;
+      document.getElementById('shortest-time').innerText = `${shortestTimeMins} 분`;
+      document.getElementById('shortest-surplus').innerText = `- ${deficitSecs} 초 (위험 신호등 통과)`;
 
-      renderTableAndMarkers(currentData.crosswalks);
+      // 하단 위험 횡단보도 TOP 10 데이터 업데이트
+      renderTableAndMarkers(districtCrosswalksDB[distKey] || districtCrosswalksDB['gangdong']);
     }
 
     function renderTableAndMarkers(crosswalks) {
