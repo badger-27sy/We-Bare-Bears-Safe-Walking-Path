@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>팀 위 베어 베어스 - 보행 약자 맞춤형 안심 보행길 분석 앱</title>
 
-  <!-- Leaflet Map Engine -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
@@ -24,7 +21,6 @@
       --wbb-card-bg: #FFFFFF;
       --wbb-border: #E2E8F0;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; }
     body { background-color: var(--wbb-bg); color: #2D3748; min-height: 100vh; padding-bottom: 60px; }
 
@@ -33,25 +29,26 @@
       color: white; padding: 18px 32px; display: flex; justify-content: space-between; align-items: center;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
-    .brand-title { font-family: 'Jua', sans-serif; font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
+    .brand-title { font-family: 'Jua', sans-serif; font-size: 1.8rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .brand-title span.badge { background: var(--wbb-yellow); color: var(--wbb-dark-brown); font-size: 0.85rem; padding: 4px 12px; border-radius: 14px; font-weight: 800; }
 
     .main-container { max-width: 1100px; margin: 24px auto 0 auto; padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }
     .card-box { background: var(--wbb-card-bg); border: 1px solid var(--wbb-border); border-radius: 20px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); }
     .card-title { font-family: 'Jua', sans-serif; font-size: 1.3rem; color: var(--wbb-dark-brown); display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 
-    /* SEARCH PANEL */
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1.2fr; gap: 12px; }
     .input-group { display: flex; flex-direction: column; gap: 6px; }
     .input-group label { font-size: 0.8rem; font-weight: 700; color: #4A5568; }
     .input-field, .select-field { padding: 10px 12px; border: 1.5px solid #CBD5E0; border-radius: 10px; font-size: 0.9rem; outline: none; }
+    .input-field:focus, .select-field:focus { border-color: var(--wbb-brown); }
     .btn-search {
       grid-column: span 4; background: linear-gradient(135deg, var(--wbb-brown), var(--wbb-dark-brown));
       color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px;
     }
+    .btn-search:disabled { opacity: 0.6; cursor: wait; }
+    .hint { grid-column: span 4; font-size: 0.8rem; color: #718096; }
 
-    /* PERSONA SPEED SELECTOR */
     .persona-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     .persona-card {
       background: #FAFAFA; border: 2px solid #E2E8F0; border-radius: 14px; padding: 12px; cursor: pointer;
@@ -61,7 +58,6 @@
     .persona-name { font-weight: 700; font-size: 0.9rem; }
     .persona-speed { font-size: 0.78rem; color: #4A5568; background: #EDF2F7; padding: 2px 8px; border-radius: 8px; font-weight: 700; }
 
-    /* MAP & ROUTE COMPARISON */
     #map { width: 100%; height: 460px; border-radius: 16px; border: 1px solid var(--wbb-border); }
     .traffic-icon { background: white; border: 2px solid #333; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 
@@ -69,14 +65,21 @@
     .metric-card { border: 2px solid var(--wbb-border); border-radius: 14px; padding: 16px; background: #FAFAFA; }
     .metric-card.active-safe { border-color: var(--wbb-green); background: #F0FDF4; }
     .metric-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-    .metric-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 4px; }
+    .metric-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.85rem; margin-top: 4px; }
 
-    /* TABLE */
     table.top10-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 8px; }
     table.top10-table th { background: #EDF2F7; padding: 10px; text-align: left; font-weight: 700; border-bottom: 2px solid var(--wbb-border); }
     table.top10-table td { padding: 10px; border-bottom: 1px solid #EDF2F7; cursor: pointer; }
     table.top10-table tr:hover { background: #FFFDF0; }
     .badge-risk { background: #FFF5F5; color: #C53030; padding: 3px 6px; border-radius: 6px; font-weight: 800; font-size: 0.78rem; }
+    .badge-ok { background: #F0FFF4; color: #2F855A; padding: 3px 6px; border-radius: 6px; font-weight: 800; font-size: 0.78rem; }
+
+    @media (max-width: 800px) {
+      .filter-grid { grid-template-columns: 1fr 1fr; }
+      .btn-search, .hint { grid-column: span 2; }
+      .persona-grid { grid-template-columns: 1fr 1fr; }
+      .route-metrics-box { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -88,7 +91,7 @@
   </header>
 
   <div class="main-container">
-    <!-- 1. SEARCH FORM -->
+    <!-- 1. 검색 -->
     <div class="card-box">
       <div class="card-title"><i class="fa-solid fa-sliders"></i> 출발지 및 목적지 검색</div>
       <div class="filter-grid">
@@ -98,7 +101,7 @@
         </div>
         <div class="input-group">
           <label>행정구역</label>
-          <select class="select-field" id="district-select" onchange="calculateRoute()">
+          <select class="select-field" id="district-select">
             <option value="gangdong">강동구</option>
             <option value="songpa">송파구</option>
           </select>
@@ -111,13 +114,14 @@
           <label>목적지</label>
           <input type="text" id="end-input" class="input-field" value="천호초등학교 정문">
         </div>
-        <button class="btn-search" onclick="calculateRoute()">
+        <button class="btn-search" id="search-btn" onclick="calculateRoute()">
           <i class="fa-solid fa-route"></i> 최단 경로 vs 안심 우회 경로 분석 비교
         </button>
+        <div class="hint">역 이름, 학교, 건물명, 주소를 입력하면 지도가 해당 위치로 이동해요.</div>
       </div>
     </div>
 
-    <!-- 2. PEDESTRIAN PROFILE -->
+    <!-- 2. 보행자 프로필 -->
     <div class="card-box">
       <div class="card-title"><i class="fa-solid fa-child-reaching"></i> 보행자 속도 프로필 선택</div>
       <div class="persona-grid">
@@ -140,28 +144,29 @@
       </div>
     </div>
 
-    <!-- 3. MAP & ROUTE COMPARISON -->
+    <!-- 3. 지도 및 경로 비교 -->
     <div class="card-box">
       <div class="card-title"><i class="fa-solid fa-map-location-dot"></i> 보행 경로 탐색 결과</div>
       <div id="map"></div>
+      <div id="route-notice" style="display:none; margin-top:12px; padding:10px 14px; border-radius:10px; background:#FFFAF0; border:1px solid #F6AD55; color:#7B341E; font-size:0.85rem; line-height:1.5;"></div>
 
       <div class="route-metrics-box">
         <div class="metric-card active-safe">
-          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 위험 신호등 우회 안심 경로 (초록 실선)</div>
-          <div class="metric-row"><span>도보 이동 거리:</span><strong id="safe-dist">2.1 km</strong></div>
-          <div class="metric-row"><span>예상 소요 시간:</span><strong id="safe-time">35 분</strong></div>
-          <div class="metric-row"><span>신호 안전 상태:</span><strong id="safe-status" style="color:var(--wbb-green);">위험 횡단보도 우회 완료 (보행신호 넉넉함)</strong></div>
+          <div class="metric-title" style="color:var(--wbb-green);"><i class="fa-solid fa-shield-halved"></i> 추천: 안심 우회 경로 (초록 실선)</div>
+          <div class="metric-row"><span>도보 이동 거리:</span><strong id="safe-dist">-</strong></div>
+          <div class="metric-row"><span>예상 소요 시간:</span><strong id="safe-time">-</strong></div>
+          <div class="metric-row"><span>신호 안전 상태:</span><strong id="safe-status" style="color:var(--wbb-green);">-</strong></div>
         </div>
         <div class="metric-card">
           <div class="metric-title" style="color:var(--wbb-red);"><i class="fa-solid fa-person-walking"></i> 일반 최단 경로 (빨간 점선)</div>
-          <div class="metric-row"><span>도보 이동 거리:</span><strong id="shortest-dist">1.7 km</strong></div>
-          <div class="metric-row"><span>예상 소요 시간:</span><strong id="shortest-time">28 분</strong></div>
-          <div class="metric-row"><span>신호 안전 상태:</span><strong id="shortest-status" style="color:var(--wbb-red);">신호시간 부족 위험 횡단보도 통과</strong></div>
+          <div class="metric-row"><span>도보 이동 거리:</span><strong id="shortest-dist">-</strong></div>
+          <div class="metric-row"><span>예상 소요 시간:</span><strong id="shortest-time">-</strong></div>
+          <div class="metric-row"><span>신호 안전 상태:</span><strong id="shortest-status" style="color:var(--wbb-red);">-</strong></div>
         </div>
       </div>
     </div>
 
-    <!-- 4. TOP 10 RISK LIST -->
+    <!-- 4. 위험 횡단보도 목록 -->
     <div class="card-box">
       <div class="card-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--wbb-red);"></i> 분석 지역 내 신호 부족 횡단보도 TOP 10</div>
       <table class="top10-table">
@@ -185,27 +190,27 @@
     let currentPersonaName = '일반 성인';
     let map, mapMarkers = [], mapPolylines = [];
 
-    // 위치 DB
+    // 자주 쓰는 장소 (없는 장소는 검색으로 좌표를 찾아요)
     const locationDB = {
       '고덕역 1번출구': [37.5552, 127.1541],
       '명일역 1번출구': [37.5518, 127.1441],
       '천호초등학교 정문': [37.5458, 127.1292]
     };
 
-    // 횡단보도 공공데이터
+    // 횡단보도 샘플 데이터 (실제 공공데이터로 교체 필요)
     const crosswalksData = [
-      { rank: 1, name: '명일초등학교 정문 앞 교차로', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
-      { rank: 2, name: '구천면로 대형 사거리 횡단보도', length: 34, signal: 22, lat: 37.5498, lng: 127.1395 },
-      { rank: 3, name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
-      { rank: 4, name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 }
+      { name: '명일초등학교 정문 앞 교차로', length: 28, signal: 24, lat: 37.5521, lng: 127.1442 },
+      { name: '구천면로 대형 사거리 횡단보도', length: 34, signal: 22, lat: 37.5498, lng: 127.1395 },
+      { name: '천호사거리 (천호역 3번출구)', length: 36, signal: 31, lat: 37.5386, lng: 127.1235 },
+      { name: '길동시장 입구 횡단보도', length: 22, signal: 20, lat: 37.5378, lng: 127.1401 }
     ];
 
+    // ===== 지도 초기화 =====
     function initMap() {
       map = L.map('map').setView([37.5500, 127.1400], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap | Team We Bare Bears'
       }).addTo(map);
-
       calculateRoute();
     }
 
@@ -217,92 +222,194 @@
       calculateRoute();
     }
 
-    function calculateRoute() {
-      // 기존 레이어 정리
-      mapMarkers.forEach(m => map.removeLayer(m));
-      mapPolylines.forEach(p => map.removeLayer(p));
-      mapMarkers = []; mapPolylines = [];
-
-      const startName = document.getElementById('start-input').value.trim();
-      const endName = document.getElementById('end-input').value.trim();
-
-      const startPos = locationDB[startName] || [37.5552, 127.1541];
-      const endPos = locationDB[endName] || [37.5458, 127.1292];
-
-      // 1. 최단 경로 (실제 인도를 따라 직진하지만 중간 위험 횡단보도를 지남)
-      const riskTrafficPos = [37.5498, 127.1395]; // 구천면로 대형 사거리 (위험 구간)
-      const shortestPath = [
-        startPos,
-        [startPos[0], riskTrafficPos[1]], // 도로 보도 따라 이동
-        riskTrafficPos,                   // 위험 횡단보도 통과
-        [endPos[0], riskTrafficPos[1]],
-        endPos
-      ];
-
-      // 2. 안심 우회 경로 (알고리즘이 위험 신호등을 감지하고 보행섬/안심 보행로로 우회)
-      const safeDetourPos = [37.5515, 127.1372]; // 신호시간이 넉넉한 보행섬 교차로
-      const safePath = [
-        startPos,
-        [startPos[0], safeDetourPos[1]],
-        safeDetourPos,                     // 위험 신호등 회피 우회점
-        [endPos[0], safeDetourPos[1]],
-        endPos
-      ];
-
-      // 경로 그리기 (최단: 빨간 점선, 안심: 초록 실선)
-      const safePoly = L.polyline(safePath, { color: '#2ECC71', weight: 6, opacity: 0.9 }).addTo(map);
-      const shortestPoly = L.polyline(shortestPath, { color: '#E74C3C', weight: 4, opacity: 0.75, dashArray: '6, 8' }).addTo(map);
-      mapPolylines.push(safePoly, shortestPoly);
-
-      // 자동 줌 맞춤
-      map.fitBounds(L.latLngBounds([...shortestPath, ...safePath]), { padding: [40, 40] });
-
-      // 출발 / 목적지 마커
-      mapMarkers.push(L.marker(startPos).addTo(map).bindPopup(`<b>[출발지] ${startName}</b>`).openPopup());
-      mapMarkers.push(L.marker(endPos).addTo(map).bindPopup(`<b>[목적지] ${endName}</b>`));
-
-      // 위험 신호등 vs 우회 안심 신호등 표시
-      const riskIcon = L.divIcon({ className: 'traffic-icon', html: '<i class="fa-solid fa-traffic-light" style="color:#E74C3C;"></i>' });
-      const safeIcon = L.divIcon({ className: 'traffic-icon', html: '<i class="fa-solid fa-traffic-light" style="color:#2ECC71;"></i>' });
-
-      mapMarkers.push(L.marker(riskTrafficPos, { icon: riskIcon }).addTo(map).bindPopup('<b>[위험 횡단보도]</b><br>보행 속도 대비 신호 부족! (최단경로 통과)'));
-      mapMarkers.push(L.marker(safeDetourPos, { icon: safeIcon }).addTo(map).bindPopup('<b>[추천 안심 횡단보도]</b><br>보행섬 확보 및 신호 넉넉함 (안심 우회경로)'));
-
-      // 카드 데이터 업데이트
-      const shortestDistM = Math.round(map.distance(startPos, endPos) * 1.3);
-      const safeDistM = Math.round(shortestDistM * 1.2);
-
-      document.getElementById('safe-dist').innerText = `${(safeDistM / 1000).toFixed(1)} km`;
-      document.getElementById('safe-time').innerText = `${Math.round((safeDistM / currentSpeed) / 60)} 분`;
-      document.getElementById('shortest-dist').innerText = `${(shortestDistM / 1000).toFixed(1)} km`;
-      document.getElementById('shortest-time').innerText = `${Math.round((shortestDistM / currentSpeed) / 60)} 분`;
-
-      renderTable();
+    // ===== 장소명 → 좌표 =====
+    async function geocode(q) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=kr&q=${encodeURIComponent('서울 ' + q)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!data.length) throw new Error(`장소를 찾지 못했어요: ${q}\n역 이름이나 주소로 다시 입력해 보세요.`);
+      return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
     }
 
+    // ===== 실제 보행자 경로 (경유점 지원) =====
+    async function getWalkRoute(points) {
+      const coords = points.map(p => `${p[1]},${p[0]}`).join(';');
+      const servers = [
+        `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`,
+        `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`
+      ];
+      let lastErr;
+      for (const url of servers) {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 8000);
+          const res = await fetch(url, { signal: ctrl.signal });
+          clearTimeout(timer);
+          const data = await res.json();
+          if (data.code !== 'Ok') throw new Error('보행 경로를 찾지 못했어요.');
+          const r = data.routes[0];
+          return {
+            coords: r.geometry.coordinates.map(c => [c[1], c[0]]),
+            dist: r.distance
+          };
+        } catch (e) { lastErr = e; }
+      }
+      throw lastErr || new Error('경로 서버에 연결하지 못했어요.');
+    }
+
+    function showNotice(msg) {
+      const el = document.getElementById('route-notice');
+      el.innerHTML = msg;
+      el.style.display = msg ? 'block' : 'none';
+    }
+
+    // ===== 거리 계산 =====
+    function distToSegment(p, a, b) {
+      const k = 111320, cos = Math.cos(p[0] * Math.PI / 180);
+      const px = p[1] * k * cos, py = p[0] * k;
+      const ax = a[1] * k * cos, ay = a[0] * k;
+      const bx = b[1] * k * cos, by = b[0] * k;
+      const dx = bx - ax, dy = by - ay;
+      const len2 = dx * dx + dy * dy;
+      const t = len2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2)) : 0;
+      return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    }
+    function minDistToPath(p, path) {
+      let m = Infinity;
+      for (let i = 0; i < path.length - 1; i++) m = Math.min(m, distToSegment(p, path[i], path[i + 1]));
+      return m;
+    }
+
+    // ===== 위험 횡단보도 판단 =====
+    function requiredTime(c) { return 7 + c.length / currentSpeed; }
+    function getRiskyCrosswalks() { return crosswalksData.filter(c => c.signal < requiredTime(c)); }
+    function hitsRisk(path, risky) { return risky.filter(c => minDistToPath([c.lat, c.lng], path) < 30); }
+
+    // ===== 안심 우회 경로 탐색 =====
+    async function findSafeRoute(start, end, shortest, risky) {
+      const hit = hitsRisk(shortest.coords, risky);
+      if (!hit.length) return { ...shortest, detoured: false };
+
+      const candidates = [];
+      hit.forEach(c => {
+        [0.0018, 0.0035].forEach(d => {
+          candidates.push([c.lat + d, c.lng], [c.lat - d, c.lng], [c.lat, c.lng + d], [c.lat, c.lng - d]);
+        });
+      });
+
+      const results = await Promise.allSettled(candidates.map(v => getWalkRoute([start, v, end])));
+      const valid = results.filter(r => r.status === 'fulfilled').map(r => r.value)
+        .map(r => ({ ...r, hits: hitsRisk(r.coords, risky).length }));
+
+      if (!valid.length) return { ...shortest, detoured: false };
+      valid.sort((a, b) => a.hits - b.hits || a.dist - b.dist);
+      return { ...valid[0], detoured: valid[0].hits < hit.length };
+    }
+
+    // ===== 메인: 경로 계산 =====
+    async function calculateRoute() {
+      const btn = document.getElementById('search-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 경로 분석 중...';
+
+      try {
+        mapMarkers.forEach(m => map.removeLayer(m));
+        mapPolylines.forEach(p => map.removeLayer(p));
+        mapMarkers = []; mapPolylines = [];
+
+        const startName = document.getElementById('start-input').value.trim();
+        const endName = document.getElementById('end-input').value.trim();
+        if (!startName || !endName) throw new Error('출발지와 목적지를 모두 입력해 주세요.');
+
+        renderTable(); // 서버와 상관없이 표는 항상 먼저 채움
+        showNotice('');
+
+        const startPos = locationDB[startName] || await geocode(startName);
+        const endPos = locationDB[endName] || await geocode(endName);
+
+        map.fitBounds(L.latLngBounds([startPos, endPos]), { padding: [60, 60] });
+        mapMarkers.push(L.marker(startPos).addTo(map).bindPopup(`<b>[출발지] ${startName}</b>`));
+        mapMarkers.push(L.marker(endPos).addTo(map).bindPopup(`<b>[목적지] ${endName}</b>`));
+
+        let shortest;
+        try {
+          shortest = await getWalkRoute([startPos, endPos]);
+        } catch (err) {
+          throw new Error('실제 보행 경로 서버에 연결하지 못했어요. 이 화면이 실행되는 환경(미리보기·온라인 에디터·학교/회사 네트워크)에서 외부 요청이 막혀 있을 수 있어요. 파일을 내려받아 일반 네트워크의 크롬에서 직접 열어 보세요.');
+        }
+        const estimated = false;
+        const risky = getRiskyCrosswalks();
+        const safe = await findSafeRoute(startPos, endPos, shortest, risky);
+
+        const safePoly = L.polyline(safe.coords, { color: '#2ECC71', weight: 6, opacity: 0.9 }).addTo(map);
+        const shortPoly = L.polyline(shortest.coords, { color: '#E74C3C', weight: 4, opacity: 0.75, dashArray: '6, 8' }).addTo(map);
+        mapPolylines.push(safePoly, shortPoly);
+        map.fitBounds(L.latLngBounds([...shortest.coords, ...safe.coords]), { padding: [40, 40] });
+
+        const riskIcon = L.divIcon({
+          className: 'traffic-icon',
+          html: '<i class="fa-solid fa-traffic-light" style="color:#E74C3C;"></i>'
+        });
+        risky.forEach(c => mapMarkers.push(
+          L.marker([c.lat, c.lng], { icon: riskIcon }).addTo(map)
+            .bindPopup(`<b>[신호 부족]</b><br>${c.name}`)
+        ));
+
+        const fmtTime = d => `${Math.round(d / currentSpeed / 60)} 분`;
+        document.getElementById('shortest-dist').innerText = `${(shortest.dist / 1000).toFixed(2)} km`;
+        document.getElementById('shortest-time').innerText = fmtTime(shortest.dist);
+        document.getElementById('safe-dist').innerText = `${(safe.dist / 1000).toFixed(2)} km`;
+        document.getElementById('safe-time').innerText = fmtTime(safe.dist);
+
+        const shortHits = hitsRisk(shortest.coords, risky).length;
+        const safeHits = hitsRisk(safe.coords, risky).length;
+        document.getElementById('shortest-status').innerText =
+          shortHits ? `신호 부족 횡단보도 ${shortHits}곳 통과` : '신호 부족 횡단보도 없음';
+        document.getElementById('safe-status').innerText = estimated
+          ? '경로 서버 연결 실패 (추정값)'
+          : safe.detoured
+            ? `위험 횡단보도 우회 (${shortHits}곳 → ${safeHits}곳)`
+            : (shortHits ? '더 안전한 우회 경로를 찾지 못했어요' : '최단 경로가 이미 안전해요');
+        if (estimated) document.getElementById('shortest-status').innerText = '경로 서버 연결 실패 (추정값)';
+      } catch (e) {
+        showNotice(e.message.replace(/\n/g, '<br>'));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-route"></i> 최단 경로 vs 안심 우회 경로 분석 비교';
+      }
+    }
+
+    // ===== 위험 횡단보도 표 =====
     function renderTable() {
       const tbody = document.getElementById('top10-tbody');
-      tbody.innerHTML = '';
+      const rows = crosswalksData
+        .map(c => {
+          const req = requiredTime(c);
+          return { ...c, req, ratio: Math.round((c.signal / req) * 100) };
+        })
+        .sort((a, b) => a.ratio - b.ratio);
 
-      crosswalksData.forEach(item => {
-        // 필요시간 = 7초 + (길이 / 속도)
-        const reqTime = (7 + (item.length / currentSpeed)).toFixed(1);
-        const ratio = Math.round((item.signal / reqTime) * 100);
-
-        tbody.innerHTML += `
-          <tr onclick="map.setView([${item.lat}, ${item.lng}], 16)">
-            <td><strong>${item.rank}</strong></td>
-            <td>${item.name}</td>
-            <td>${item.length}m</td>
-            <td>${item.signal}초</td>
-            <td><b>${reqTime}초</b></td>
-            <td><span class="badge-risk">${ratio}%</span></td>
-          </tr>
-        `;
-      });
+      tbody.innerHTML = rows.map((item, i) => `
+        <tr onclick="map.setView([${item.lat}, ${item.lng}], 16)">
+          <td><strong>${i + 1}</strong></td>
+          <td>${item.name}</td>
+          <td>${item.length}m</td>
+          <td>${item.signal}초</td>
+          <td><b>${item.req.toFixed(1)}초</b></td>
+          <td><span class="${item.ratio < 100 ? 'badge-risk' : 'badge-ok'}">${item.ratio}%</span></td>
+        </tr>
+      `).join('');
     }
 
-    window.onload = initMap;
+    window.onload = function () {
+      renderTable();
+      if (typeof L === 'undefined') {
+        document.getElementById('map').innerHTML =
+          '<p style="padding:20px;">지도 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하고, 파일을 내려받아 브라우저(크롬 등)에서 직접 열어 보세요.</p>';
+        return;
+      }
+      initMap();
+    };
   </script>
 </body>
 </html>
