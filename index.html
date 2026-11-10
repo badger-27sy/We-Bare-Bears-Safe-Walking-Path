@@ -148,6 +148,7 @@
     <div class="card-box">
       <div class="card-title"><i class="fa-solid fa-map-location-dot"></i> 보행 경로 탐색 결과</div>
       <div id="map"></div>
+      <div id="conn-status" style="margin-top:10px; font-size:0.82rem; color:#718096;">경로 서버 연결 확인 중...</div>
       <div id="route-notice" style="display:none; margin-top:12px; padding:10px 14px; border-radius:10px; background:#FFFAF0; border:1px solid #F6AD55; color:#7B341E; font-size:0.85rem; line-height:1.5;"></div>
 
       <div class="route-metrics-box">
@@ -234,27 +235,25 @@
     // ===== 실제 보행자 경로 (경유점 지원) =====
     async function getWalkRoute(points) {
       const coords = points.map(p => `${p[1]},${p[0]}`).join(';');
-      const servers = [
-        `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`,
-        `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`
-      ];
+      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`;
       let lastErr;
-      for (const url of servers) {
+      for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          const ctrl = new AbortController();
-          const timer = setTimeout(() => ctrl.abort(), 8000);
-          const res = await fetch(url, { signal: ctrl.signal });
-          clearTimeout(timer);
+          // AbortSignal은 미리보기 환경에서 전달이 안 되므로, 시간 제한은 Promise.race로 처리
+          const res = await Promise.race([
+            fetch(url),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('응답 시간 초과 (10초)')), 10000))
+          ]);
+          if (!res.ok) throw new Error(`서버 응답 오류 (HTTP ${res.status})`);
           const data = await res.json();
-          if (data.code !== 'Ok') throw new Error('보행 경로를 찾지 못했어요.');
+          if (data.code !== 'Ok') throw new Error(`경로 없음 (${data.code})`);
           const r = data.routes[0];
-          return {
-            coords: r.geometry.coordinates.map(c => [c[1], c[0]]),
-            dist: r.distance
-          };
-        } catch (e) { lastErr = e; }
+          return { coords: r.geometry.coordinates.map(c => [c[1], c[0]]), dist: r.distance };
+        } catch (e) {
+          lastErr = e;
+        }
       }
-      throw lastErr || new Error('경로 서버에 연결하지 못했어요.');
+      throw lastErr;
     }
 
     function showNotice(msg) {
@@ -335,7 +334,7 @@
         try {
           shortest = await getWalkRoute([startPos, endPos]);
         } catch (err) {
-          throw new Error('실제 보행 경로 서버에 연결하지 못했어요. 이 화면이 실행되는 환경(미리보기·온라인 에디터·학교/회사 네트워크)에서 외부 요청이 막혀 있을 수 있어요. 파일을 내려받아 일반 네트워크의 크롬에서 직접 열어 보세요.');
+          throw new Error(`보행 경로를 받지 못했어요.<br><b>원인: ${err.message}</b><br>인터넷이 연결된 컴퓨터의 크롬에서, 파일을 직접 열어서(주소가 file:/// 로 시작) 실행했는지 확인해 주세요.`);
         }
         const estimated = false;
         const risky = getRiskyCrosswalks();
@@ -401,8 +400,19 @@
       `).join('');
     }
 
+    async function checkConnection() {
+      const el = document.getElementById('conn-status');
+      try {
+        await getWalkRoute([[37.5552, 127.1541], [37.5518, 127.1441]]);
+        el.innerHTML = '<span style="color:#2F855A;">● 경로 서버 연결 성공</span>';
+      } catch (e) {
+        el.innerHTML = `<span style="color:#C53030;">● 경로 서버 연결 실패: ${e.message}</span>`;
+      }
+    }
+
     window.onload = function () {
       renderTable();
+      checkConnection();
       if (typeof L === 'undefined') {
         document.getElementById('map').innerHTML =
           '<p style="padding:20px;">지도 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하고, 파일을 내려받아 브라우저(크롬 등)에서 직접 열어 보세요.</p>';
