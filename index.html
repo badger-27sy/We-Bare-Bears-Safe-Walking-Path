@@ -4471,10 +4471,10 @@ const CROSSWALK_ROWS = [
     // ===== 지도 초기화 =====
     function initMap() {
       map = L.map('map').setView([37.5500, 127.1400], 14);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd', maxZoom: 19,
-        attribution: '© OpenStreetMap © CARTO | Team We Bare Bears'
-      }).addTo(map);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+     maxZoom: 19,
+     attribution: '© OpenStreetMap | Team We Bare Bears'
+   }).addTo(map);
       calculateRoute();
     }
 
