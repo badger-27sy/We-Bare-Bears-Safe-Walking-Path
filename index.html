@@ -4504,7 +4504,7 @@ const CROSSWALK_ROWS = [
     // ===== 실제 보행자 경로 (경유점 지원) =====
     async function getWalkRoute(points) {
       const coords = points.map(p => `${p[1]},${p[0]}`).join(';');
-      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`;
+      const url = `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`;
       let lastErr;
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
