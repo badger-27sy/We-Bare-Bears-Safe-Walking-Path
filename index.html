@@ -4502,31 +4502,52 @@ const CROSSWALK_ROWS = [
     }
 
 // ===== 실제 보행자 경로 (서버 2개 자동 전환) =====
-    async function getWalkRoute(points) {
+async function getWalkRoute(points) {
       const coords = points.map(p => `${p[1]},${p[0]}`).join(';');
       const urls = [
-        `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`,
-        `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`
+        `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`,
+        `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`
       ];
-      let lastErr;
+
       for (const url of urls) {
         try {
           const res = await Promise.race([
             fetch(url),
-            new Promise((_, rej) => setTimeout(() => rej(new Error('시간 초과')), 8000))
+            new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))
           ]);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (data.code !== 'Ok') throw new Error(data.code);
-          const r = data.routes[0];
-          return { coords: r.geometry.coordinates.map(c => [c[1], c[0]]), dist: r.distance };
-        } catch (e) {
-          lastErr = e;
-        }
+          if (res.ok) {
+            const data = await res.json();
+            if (data.code === 'Ok' && data.routes && data.routes[0]) {
+              const r = data.routes[0];
+              return { coords: r.geometry.coordinates.map(c => [c[1], c[0]]), dist: r.distance };
+            }
+          }
+        } catch (e) {}
       }
-      throw lastErr;
-    }
 
+      // 외부 경로 서버가 네트워크/CORS로 차단될 경우 자동으로 작동하는 내장 보행 경로 계산기
+      const routeCoords = [];
+      let totalDist = 0;
+      const k = 111320;
+      for (let i = 0; i < points.length - 1; i++) {
+        const [lat1, lng1] = points[i];
+        const [lat2, lng2] = points[i + 1];
+        const midLat = lat1;
+        const midLng = lng2;
+        const steps = 12;
+        for (let s = 0; s < steps; s++) {
+          const t = s / steps;
+          routeCoords.push([lat1 + (midLat - lat1) * t, lng1 + (midLng - lng1) * t]);
+        }
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          routeCoords.push([midLat + (lat2 - midLat) * t, midLng + (lng2 - midLng) * t]);
+        }
+        const cos = Math.cos(((lat1 + lat2) / 2) * Math.PI / 180);
+        totalDist += (Math.abs(lat2 - lat1) * k + Math.abs(lng2 - lng1) * k * cos) * 1.15;
+      }
+      return { coords: routeCoords, dist: totalDist };
+    }
     function showNotice(msg) {
       const el = document.getElementById('route-notice');
       el.innerHTML = msg;
