@@ -4501,21 +4501,23 @@ const CROSSWALK_ROWS = [
       return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
     }
 
-    // ===== 실제 보행자 경로 (경유점 지원) =====
+// ===== 실제 보행자 경로 (서버 2개 자동 전환) =====
     async function getWalkRoute(points) {
       const coords = points.map(p => `${p[1]},${p[0]}`).join(';');
-      const url = `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`;
+      const urls = [
+        `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`,
+        `https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`
+      ];
       let lastErr;
-      for (let attempt = 0; attempt < 2; attempt++) {
+      for (const url of urls) {
         try {
-          // AbortSignal은 미리보기 환경에서 전달이 안 되므로, 시간 제한은 Promise.race로 처리
           const res = await Promise.race([
             fetch(url),
-            new Promise((_, rej) => setTimeout(() => rej(new Error('응답 시간 초과 (10초)')), 10000))
+            new Promise((_, rej) => setTimeout(() => rej(new Error('시간 초과')), 8000))
           ]);
-          if (!res.ok) throw new Error(`서버 응답 오류 (HTTP ${res.status})`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
-          if (data.code !== 'Ok') throw new Error(`경로 없음 (${data.code})`);
+          if (data.code !== 'Ok') throw new Error(data.code);
           const r = data.routes[0];
           return { coords: r.geometry.coordinates.map(c => [c[1], c[0]]), dist: r.distance };
         } catch (e) {
@@ -4548,7 +4550,6 @@ const CROSSWALK_ROWS = [
       return m;
     }
 
-    // 경로가 횡단보도를 실제로 건너는지 (경로에서 15m 이내) - 데이터가 많아서 경로 주변만 먼저 걸러요
     const HIT_DIST_M = 15;
     function hitsRisk(path, risky) {
       let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
@@ -4563,26 +4564,33 @@ const CROSSWALK_ROWS = [
     }
 
     // ===== 안심 우회 경로 탐색 =====
-    // 공개 경로 서버에 요청이 몰리지 않도록, 가장 위험한 3곳 주변으로 최대 12개 후보만 시도해요.
     async function findSafeRoute(start, end, shortest, risky) {
       const hit = hitsRisk(shortest.coords, risky);
       if (!hit.length) return { ...shortest, detoured: false };
 
-      const worst = [...hit].sort((a, b) => b.score - a.score).slice(0, 3);
+      const worst = [...hit].sort((a, b) => b.score - a.score)[0];
       const d = 0.0025;
-      const candidates = [];
-      worst.forEach(c => candidates.push([c.lat + d, c.lng], [c.lat - d, c.lng], [c.lat, c.lng + d], [c.lat, c.lng - d]));
+      const candidates = [
+        [worst.lat + d, worst.lng],
+        [worst.lat - d, worst.lng],
+        [worst.lat, worst.lng + d],
+        [worst.lat, worst.lng - d]
+      ];
 
-      const results = await Promise.allSettled(candidates.map(v => getWalkRoute([start, v, end])));
-      const valid = results.filter(r => r.status === 'fulfilled').map(r => r.value)
-        .filter(r => r.dist <= shortest.dist * 2)   // 너무 많이 돌아가는 경로는 제외
-        .map(r => ({ ...r, hits: hitsRisk(r.coords, risky).length }));
+      const valid = [];
+      for (const v of candidates) {
+        try {
+          const r = await getWalkRoute([start, v, end]);
+          if (r.dist <= shortest.dist * 2) {
+            valid.push({ ...r, hits: hitsRisk(r.coords, risky).length });
+          }
+        } catch (e) {}
+      }
 
       if (!valid.length) return { ...shortest, detoured: false };
       valid.sort((a, b) => a.hits - b.hits || a.dist - b.dist);
       return valid[0].hits < hit.length ? { ...valid[0], detoured: true } : { ...shortest, detoured: false };
     }
-
     // ===== 메인: 경로 계산 =====
     async function calculateRoute() {
       const btn = document.getElementById('search-btn');
