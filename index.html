@@ -4341,7 +4341,7 @@ const CROSSWALK_ROWS = [
         </div>
         <div class="input-group">
           <label>목적지</label>
-          <input type="text" id="end-input" class="input-field" value="천호초등학교 정문">
+          <input type="text" id="end-input" class="input-field" value="한영외국어고등학교">
         </div>
         <button class="btn-search" id="search-btn" onclick="calculateRoute()">
           <i class="fa-solid fa-route"></i> 최단 경로 vs 안심 우회 경로 분석 비교
@@ -4421,10 +4421,11 @@ const CROSSWALK_ROWS = [
 
     // 자주 쓰는 장소 (없는 장소는 검색으로 좌표를 찾아요)
     const locationDB = {
-      '고덕역 1번출구': [37.5552, 127.1541],
-      '명일역 1번출구': [37.5518, 127.1441],
-      '천호초등학교 정문': [37.5458, 127.1292]
-    };
+   '고덕역 1번출구': [37.5552, 127.1541],
+   '명일역 1번출구': [37.5518, 127.1441],
+   '천호초등학교 정문': [37.5458, 127.1292],
+   '한영외국어고등학교': [37.5492, 127.1558]
+ };
 
     // ===== 위험 기준 설정 =====
     // 횡단보도 공공데이터에는 길이·신호시간이 없어서, 안전시설이 부족한 정도로 위험을 판단해요.
